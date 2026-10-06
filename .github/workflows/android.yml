@@ -24,13 +24,15 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Set up Gradle
+      - name: Set up Gradle 9.5.0
         uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: '9.5.0'
 
       - name: Build APK
         run: gradle assembleDebug
 
-      - name: Rename APK
+      - name: Prepare APK
         run: |
           mkdir -p release
           cp app/build/outputs/apk/debug/*.apk "release/EchoRoute-${GITHUB_REF_NAME}.apk"
