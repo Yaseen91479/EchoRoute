@@ -9,9 +9,9 @@
     <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:statusBarColor">#0A0F13</item>
-        <item name="android:navigationBarColor">#0A0F13</item>
-        <item name="android:colorAccent">#88E4CD</item>
-        <item name="android:windowBackground">#0A0F13</item>
+        <item name="android:statusBarColor">#20250F</item>
+        <item name="android:navigationBarColor">#20250F</item>
+        <item name="android:colorAccent">#D9D67A</item>
+        <item name="android:windowBackground">#20250F</item>
     </style>
 </resources>
