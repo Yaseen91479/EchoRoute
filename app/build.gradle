@@ -1,0 +1,42 @@
+/*
+ * EchoRoute
+ * Copyright (c) 2026 Yaseen91479
+ * Contact: yaseenwaleeddis99@gmail.com
+ * GitHub: Yaseen91479
+ * All rights reserved. See the project LICENSE file.
+ */
+
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.echoroute.aec'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.echoroute.aec'
+        minSdk 29
+        targetSdk 36
+        versionCode 33
+        versionName '3.3-clean'
+    }
+
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        aidl true
+        buildConfig true
+    }
+
+}
+
+dependencies {
+    implementation 'dev.rikka.shizuku:api:13.1.5'
+    implementation 'dev.rikka.shizuku:provider:13.1.5'
+
+}

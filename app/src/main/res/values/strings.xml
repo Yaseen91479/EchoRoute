@@ -1,0 +1,12 @@
+<!--
+  EchoRoute
+  Copyright (c) 2026 Yaseen91479
+  Contact: yaseenwaleeddis99@gmail.com
+  GitHub: Yaseen91479
+  All rights reserved. See the project LICENSE file.
+-->
+<resources>
+    <string name="app_name">EchoRoute</string>
+    <string name="module_name">EchoRoute Microphone Effects</string>
+    <string name="module_description">Android microphone effects: AEC, Noise Suppression, and AGC V2.</string>
+</resources>

@@ -1,0 +1,17 @@
+<!--
+  EchoRoute
+  Copyright (c) 2026 Yaseen91479
+  Contact: yaseenwaleeddis99@gmail.com
+  GitHub: Yaseen91479
+  All rights reserved. See the project LICENSE file.
+-->
+<resources>
+    <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">#0A0F13</item>
+        <item name="android:navigationBarColor">#0A0F13</item>
+        <item name="android:colorAccent">#88E4CD</item>
+        <item name="android:windowBackground">#0A0F13</item>
+    </style>
+</resources>

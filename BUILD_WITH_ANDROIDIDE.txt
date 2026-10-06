@@ -1,0 +1,9 @@
+Open this folder in Code On The Go / AndroidIDE.
+
+1. Sync Gradle.
+2. Run `:app:assembleDebug`.
+3. APK: `app/build/outputs/apk/debug/app-debug.apk`.
+
+This build uses Shizuku for the privileged Android AudioPolicy operations. EchoRoute does not request RECORD_AUDIO and does not open the microphone.
+
+The app supports Automatic and Manual target modes, with AEC, Noise Suppression, and AGC V2 source-default effects. STOP force-closes the tracked microphone app before removing the EchoRoute registrations.

@@ -1,0 +1,10 @@
+/*
+ * EchoRoute
+ * Copyright (c) 2026 Yaseen91479
+ * Contact: yaseenwaleeddis99@gmail.com
+ * All rights reserved. See the project LICENSE file.
+ */
+
+plugins {
+    id 'com.android.application' version '9.3.1' apply false
+}
