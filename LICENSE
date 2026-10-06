@@ -6,48 +6,207 @@ Contact: yaseenwaleeddis99@gmail.com
 
 All rights reserved.
 
-1. Ownership
-The following are owned by Yaseen91479, the copyright holder, to the extent provided by applicable law:
-- the source code and the compiled application (APK);
-- the user interface design, layout, colors and behavior;
-- the app icon, launcher icons, notification icon, logo, images and other artwork (including the icon/ folder);
-- the name "EchoRoute";
-- the documentation, text, project structure and all other original EchoRoute materials.
+This license applies to the original EchoRoute materials owned by Yaseen91479, subject to the rights of third-party components and materials identified in THIRD_PARTY_NOTICES.md and their respective licenses.
 
-2. No automatic permission
-No right or license is granted to reproduce, copy, publish, distribute, sell, sublicense, rent, lease, host, mirror, modify, adapt, translate, create derivative works from, publicly display, publicly perform, commercially exploit, or otherwise redistribute EchoRoute materials unless the copyright holder gives prior written permission.
+1. Ownership and Scope
 
-3. Commercial and economic use
-Commercial use, monetization, resale, paid redistribution, bundling into a commercial product, or other economic exploitation is not permitted without prior written permission.
+Unless expressly identified as third-party material, the original materials of EchoRoute are owned by Yaseen91479 and are protected by applicable intellectual property laws.
 
-4. Cultural, public, and social distribution
-Public, cultural, educational, social, media, or community redistribution of the original EchoRoute materials is not permitted without prior written permission, except where a legal exception independently applies.
+These original materials include, where applicable:
 
-5. Derivative works
-Modified, translated, adapted, repackaged, or substantially derived versions of the original EchoRoute materials may not be distributed without prior written permission.
+- source code and software implementation;
+- original user-interface implementation and visual expression;
+- project text, labels, documentation, and written explanations;
+- icons, logos, artwork, and original graphical assets;
+- original project documentation, diagrams, specifications, terminology, and architectural descriptions;
+- other original creative or technical expression created for the EchoRoute project.
 
-6. Name, icon and logo
-The name "EchoRoute", the app icon and the logo may not be used, copied, imitated or registered by anyone else (including as an app name, package name, store listing, domain name, social account or trademark) without prior written permission. No trademark license is granted.
+All rights not expressly granted by this license are reserved.
 
-7. Reverse engineering
-Decompiling, disassembling, extracting, or removing copyright notices from EchoRoute materials is not permitted, except where applicable law allows it regardless of this license.
+2. Software and Source Code
 
-8. Third-party components
-This license applies only to original EchoRoute materials. Third-party components keep their own licenses. In particular, Shizuku API/provider 13.1.5 are separately licensed under the MIT License as described in THIRD_PARTY_NOTICES.md.
+The EchoRoute source code, original software implementation, original algorithms as expressed in source code, configuration, scripts, and other original code created by Yaseen91479 are proprietary materials.
 
-9. Patents
-No patent or other intellectual-property license is granted by this document unless expressly stated in a separate written agreement.
+No permission is granted to:
 
-10. No warranty
-EchoRoute is provided "as is", without warranty of any kind. The copyright holder is not liable for any damage resulting from its use, to the extent permitted by law.
+- copy or reproduce the original EchoRoute source code;
+- publish or redistribute copies of the original source code;
+- modify or adapt the original source code for redistribution;
+- create or distribute derivative versions based on protected EchoRoute code;
+- repackage or present EchoRoute source code as another product;
+- commercially exploit the protected EchoRoute source code;
+- sublicense, sell, rent, lease, mirror, host, or redistribute protected EchoRoute source code.
 
-11. Termination
-Any permission given in writing ends automatically if its conditions are broken.
+These restrictions apply except where permission is expressly granted in writing, required by applicable law, or necessary to comply with rights that cannot legally be restricted.
 
-12. Applicable law
-This notice is intended to reserve the maximum rights available to the copyright holder under applicable law. Where a specific restriction is not legally enforceable, that restriction is limited only to the minimum extent required by law and the remaining provisions remain in effect.
+3. User Interface
 
-13. Contact
-Permissions and licensing requests:
+The original EchoRoute user interface includes protected elements of the project's implementation and original visual expression, including, where applicable:
+
+- original UI source code and implementation;
+- original layout and component arrangement;
+- original interaction and presentation design;
+- original combinations and arrangement of visual elements;
+- original UI text and labels created for the project;
+- other original visual expression contained in the interface.
+
+The copyright claim applies to the original copyrightable expression and implementation of these elements.
+
+Common interface conventions, generic controls, isolated colors, ordinary layouts, functional concepts, and other elements that are not protected by applicable law are not claimed as exclusive copyright merely by being used in EchoRoute.
+
+No permission is granted to copy or reproduce the protected EchoRoute UI implementation or original visual expression as part of another product, subject to applicable law.
+
+4. Text and Documentation
+
+Original EchoRoute documentation and text created by Yaseen91479, including:
+
+- project descriptions;
+- documentation;
+- explanations;
+- interface labels;
+- technical descriptions;
+- specifications;
+- diagrams with textual content;
+- original terminology and written project materials;
+
+are reserved as applicable copyrightable works.
+
+No permission is granted to reproduce, republish, redistribute, or present protected original EchoRoute text or documentation as another person's work without written permission, except where applicable law permits.
+
+5. Icons, Logos, and Artwork
+
+Original EchoRoute visual assets, including the application icon, launcher artwork, notification icon, logo, and other original artwork included in the project, are reserved to Yaseen91479 to the extent protected by applicable law.
+
+This includes the original graphical expression contained in the project assets.
+
+No permission is granted to:
+
+- copy or redistribute the original EchoRoute artwork;
+- use the artwork as another application's icon or logo;
+- modify and redistribute the original artwork;
+- remove attribution or ownership information from original EchoRoute artwork;
+- use the artwork in a manner suggesting that another person owns or created it.
+
+Trademark and brand rights are addressed separately in Section 7.
+
+6. Project Concept, Architecture, and Documented Expression
+
+EchoRoute is an original software project developed and documented by Yaseen91479.
+
+The project includes original and documented elements such as its architecture, technical design, workflow descriptions, terminology, specifications, diagrams, documentation, interface implementation, source code, and other forms of expression created for EchoRoute.
+
+All copyrightable original expression contained in these materials is reserved to Yaseen91479.
+
+No permission is granted to copy, reproduce, publish, distribute, modify, adapt, repackage, commercially exploit, or create derivative works from protected EchoRoute project materials except where expressly permitted by this license or required by applicable law.
+
+This protection covers the specific manner in which the EchoRoute concept has been expressed, documented, designed, and implemented.
+
+This may include, where protected by applicable law:
+
+- original source code;
+- technical documentation;
+- diagrams;
+- written specifications;
+- workflow descriptions;
+- original terminology;
+- interface implementation;
+- artwork;
+- other original creative expression.
+
+Nothing in this section is intended to claim copyright over an abstract idea, concept, principle, procedure, process, system, method of operation, or other subject matter that applicable law excludes from copyright protection.
+
+Accordingly, this section does not prevent independent development of software based solely on an unprotected abstract idea or concept where applicable law does not provide such protection.
+
+It does, however, reserve all rights in the protected expression, implementation, documentation, source code, UI implementation, artwork, text, diagrams, specifications, and other original materials created for EchoRoute.
+
+No license or permission is granted to use protected EchoRoute materials as the basis for copying or reproducing the original implementation or substantially similar protected expression of the project.
+
+7. EchoRoute Name, Brand, and Trademark
+
+"EchoRoute" is the project name and brand identifier associated with Yaseen91479.
+
+No trademark license is granted by this license.
+
+You are not granted permission to use "EchoRoute", the EchoRoute logo, or the EchoRoute brand identity as your own:
+
+- product name;
+- application name;
+- brand;
+- logo;
+- domain identity;
+- social-media identity;
+- store identity;
+- trademark;
+- service identifier;
+
+or in any manner that falsely suggests sponsorship, endorsement, affiliation, partnership, ownership, or official origin.
+
+Trademark rights, if any, are separate from copyright and are governed by applicable trademark law.
+
+Nothing in this license states or implies that "EchoRoute" is a registered trademark unless separately registered and legally recognized as such.
+
+8. Commercial Use and Redistribution
+
+No permission is granted to commercially exploit, sell, sublicense, distribute, mirror, host, publish, repackage, or redistribute protected original EchoRoute materials without prior written permission from Yaseen91479, except where applicable law or a valid third-party license requires otherwise.
+
+9. Modification and Derivative Works
+
+No permission is granted to create, distribute, publish, or commercially exploit derivative works based on protected EchoRoute source code, UI implementation, artwork, documentation, or other protected original expression.
+
+This restriction does not prohibit independent works that do not copy protected EchoRoute expression and are otherwise permitted by applicable law.
+
+10. Reverse Engineering
+
+To the maximum extent permitted by applicable law, no permission is granted to reverse engineer, decompile, disassemble, or otherwise attempt to derive protected source code or internal implementation from compiled EchoRoute software.
+
+Nothing in this section is intended to restrict rights that applicable law expressly grants and that cannot legally be waived or restricted.
+
+11. Third-Party Components
+
+EchoRoute may include or depend on third-party software, libraries, platform components, or other materials that are not owned by Yaseen91479.
+
+Those components remain subject to their respective copyright, trademark, patent, and license terms.
+
+In particular, Shizuku API/provider components are third-party materials and are not owned by EchoRoute. Their applicable license and notices are provided separately in THIRD_PARTY_NOTICES.md.
+
+Nothing in this license changes, overrides, or relicenses any valid third-party license.
+
+12. No Patent License
+
+This license does not grant any patent license or other patent rights belonging to Yaseen91479.
+
+Any patent rights, if applicable, are separate from the copyright permissions described in this license.
+
+13. No Transfer of Ownership
+
+Use of the EchoRoute repository, source code, documentation, or other project materials does not transfer ownership of those materials to any user, contributor, downloader, or third party.
+
+Unless expressly agreed in writing, ownership remains with Yaseen91479 or the applicable third-party rights holder.
+
+14. No Warranty
+
+The original EchoRoute materials are provided "AS IS" to the maximum extent permitted by applicable law.
+
+Yaseen91479 makes no warranty that the software will be error-free, uninterrupted, secure, or suitable for a particular purpose.
+
+Use of the software is at the user's own risk.
+
+15. Applicable Law and Severability
+
+Nothing in this license is intended to remove or limit any mandatory rights granted by applicable law.
+
+If any provision of this license is found unenforceable, the remaining provisions shall remain in effect to the extent permitted by law.
+
+16. Permission Requests
+
+Requests for permission to use protected original EchoRoute materials should be made in writing.
+
+Contact:
 yaseenwaleeddis99@gmail.com
-GitHub: Yaseen91479
+
+GitHub:
+Yaseen91479
+
+Copyright (c) 2026 Yaseen91479
+
+All rights reserved.
