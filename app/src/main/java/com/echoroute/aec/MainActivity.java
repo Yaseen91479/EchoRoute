@@ -709,7 +709,7 @@ public class MainActivity extends Activity {
         effectsCard.addView(ed);
         aecBox = checkbox("AEC  ·  Echo cancellation");
         nsBox = checkbox("NS  ·  Noise suppression");
-        agcBox = checkbox("AGC  ·  Automatic gain control (V2)");
+        agcBox = checkbox("AGC  ·  Automatic gain control");
         effectsCard.addView(aecBox);
         effectsCard.addView(nsBox);
         effectsCard.addView(agcBox);
@@ -724,7 +724,7 @@ public class MainActivity extends Activity {
 
         LinearLayout fc = card();
         fc.addView(sectionTitle("Force Close"));
-        forceBox = checkbox("Force Close the microphone when I press STOP");
+        forceBox = checkbox("Force Stop");
         forceBox.setOnClickListener(v -> {
             prefs().edit().putBoolean(PREF_FORCE_CLOSE, forceBox.isChecked()).apply();
             appendStatus("INFO", "Force Close on STOP: " + (forceBox.isChecked() ? "enabled" : "disabled"));
