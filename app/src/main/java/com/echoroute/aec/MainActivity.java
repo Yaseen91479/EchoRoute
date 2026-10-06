@@ -82,28 +82,32 @@ import rikka.shizuku.Shizuku;
  * Shizuku status (red = off, green = on) is always visible at the top.
  */
 public class MainActivity extends Activity {
-    static final String ACTION_EXIT_FROM_NOTIFICATION =
+        static final String ACTION_EXIT_FROM_NOTIFICATION =
             "com.echoroute.aec.action.EXIT_FROM_NOTIFICATION";
-// Olive palette.
-private static final int BG = Color.rgb(18, 24, 16);          // dark olive background
-private static final int SURFACE = Color.rgb(25, 33, 21);     // cards, nav bar
-private static final int SURFACE2 = Color.rgb(55, 70, 39);    // selected pills / chips
-private static final int LINE = Color.rgb(42, 52, 34);        // subtle card edge
-private static final int TEXT = Color.rgb(246, 249, 239);
-private static final int MUTED = Color.rgb(169, 177, 151);
-private static final int GREEN = Color.rgb(171, 192, 105);    // olive accent
-private static final int RED = Color.rgb(242, 109, 109);
-private static final int AMBER = Color.rgb(220, 178, 74);
 
-// Primary buttons: deep olive fill with a lighter olive edge.
-private static final int BTN_START = Color.rgb(65, 84, 43);
-private static final int BTN_START_EDGE = Color.rgb(99, 119, 70);
-private static final int BTN_STOP = Color.rgb(125, 48, 56);
-private static final int BTN_STOP_EDGE = Color.rgb(176, 84, 92);
-    private static final int AMBER = Color.rgb(232, 176, 74);
-    // Primary buttons: deep teal fill with a lighter edge and white text (like START in the screenshot).
-    private static final int BTN_START = Color.rgb(35, 91, 78);
-    private static final int BTN_START_EDGE = Color.rgb(66, 116, 104);
+    private static final int SHIZUKU_REQUEST = 7311;
+    private static final int NOTIFICATION_REQUEST = 7412;
+    private static final String PREFS = "echoroute";
+    private static final String PREF_ENABLED = "enabled";
+    private static final String PREF_MODE = "mode";
+    private static final String PREF_CONTROL_MODE = "control_mode";
+    private static final String PREF_TARGET_PACKAGE = "target_package";
+    private static final String PREF_FORCE_CLOSE = "force_close_target";
+
+    // Olive palette.
+    private static final int BG = Color.rgb(18, 24, 16);
+    private static final int SURFACE = Color.rgb(25, 33, 21);
+    private static final int SURFACE2 = Color.rgb(55, 70, 39);
+    private static final int LINE = Color.rgb(42, 52, 34);
+    private static final int TEXT = Color.rgb(246, 249, 239);
+    private static final int MUTED = Color.rgb(169, 177, 151);
+    private static final int GREEN = Color.rgb(171, 192, 105);
+    private static final int RED = Color.rgb(242, 109, 109);
+    private static final int AMBER = Color.rgb(220, 178, 74);
+
+    // Primary buttons: deep olive fill with a lighter olive edge.
+    private static final int BTN_START = Color.rgb(65, 84, 43);
+    private static final int BTN_START_EDGE = Color.rgb(99, 119, 70);
     private static final int BTN_STOP = Color.rgb(125, 48, 56);
     private static final int BTN_STOP_EDGE = Color.rgb(176, 84, 92);
 
