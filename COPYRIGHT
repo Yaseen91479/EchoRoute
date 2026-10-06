@@ -1,21 +1,97 @@
-EchoRoute Copyright Notice
+EchoRoute Copyright and Ownership Notice
 
 Copyright (c) 2026 Yaseen91479
 GitHub: Yaseen91479
 Contact: yaseenwaleeddis99@gmail.com
 
-All rights reserved. The source code, application, user interface, icon and artwork, the name "EchoRoute", the documentation and all other original EchoRoute materials in this archive are reserved to the copyright holder, subject to applicable law and to the separate licenses of third-party components.
+All rights reserved.
 
-Project identity:
-- Project: EchoRoute
-- Owner: Yaseen91479
-- GitHub username: Yaseen91479
-- Contact email: yaseenwaleeddis99@gmail.com
+This notice identifies the original EchoRoute materials owned by Yaseen91479, subject to applicable third-party rights and licenses.
 
-Rights files in this project:
-- LICENSE: terms for EchoRoute's own code and materials (proprietary, all rights reserved).
-- COPYRIGHT: this notice.
-- THIRD_PARTY_NOTICES.md: licenses of components EchoRoute uses but did not write.
-- ASSET_RIGHTS.md: the icon, logo, name and other artwork.
-- RIGHTS_GUIDE.md: plain explanation of the kinds of rights and how each one is covered.
-- PRIVACY_AUDIT.md: what data the app touches, its permissions, and what it never does.
+1. Software and Source Code
+
+The original EchoRoute source code, software implementation, scripts, configuration, and other original code created for the project are copyrighted works of Yaseen91479 to the extent protected by applicable law.
+
+All rights are reserved unless expressly granted by the project license or otherwise required by law.
+
+2. User Interface
+
+The original EchoRoute user interface includes original implementation and visual expression created for the project.
+
+This may include:
+
+- UI source code;
+- component arrangement;
+- layout implementation;
+- interaction design;
+- original presentation;
+- original combinations of visual elements;
+- original UI text and labels;
+- other copyrightable visual expression.
+
+Copyright is claimed in the original copyrightable expression and implementation of the interface.
+
+Generic interface conventions, isolated colors, ordinary controls, functional ideas, and other elements not protected by applicable law are not claimed as exclusive copyright solely because they appear in EchoRoute.
+
+3. Text and Documentation
+
+Original EchoRoute text and documentation created by Yaseen91479 are reserved.
+
+This includes, where applicable:
+
+- README and project documentation;
+- technical explanations;
+- specifications;
+- project descriptions;
+- interface labels;
+- written guides;
+- diagrams and written annotations;
+- other original written materials.
+
+4. Icons, Logos, and Artwork
+
+Original EchoRoute icons, logos, launcher artwork, notification artwork, and other original graphical assets are reserved to Yaseen91479 to the extent protected by applicable law.
+
+These assets may not be copied, redistributed, rebranded, or presented as the work of another person without permission, subject to applicable law.
+
+5. Project Concept and Architecture
+
+EchoRoute was conceived, developed, designed, and documented by Yaseen91479.
+
+The project contains original technical architecture, workflow descriptions, terminology, documentation, diagrams, specifications, interface implementation, source code, and other original expression.
+
+Copyright is claimed in all original copyrightable expression contained in these materials.
+
+The underlying abstract idea, concept, system, procedure, process, or method of operation is not claimed as copyright where applicable law excludes such subject matter from copyright protection.
+
+This notice therefore protects the concrete expression and implementation of the EchoRoute project rather than asserting ownership of an abstract idea alone.
+
+No permission is granted to copy, reproduce, distribute, modify, publish, repackage, commercially exploit, or create derivative works from protected EchoRoute code, documentation, interface implementation, artwork, text, specifications, diagrams, or other original project materials, subject to applicable law.
+
+6. Brand and Trademark
+
+"EchoRoute" is the project name and brand identifier associated with Yaseen91479.
+
+No trademark license is granted.
+
+Trademark rights are separate from copyright and are governed by applicable trademark law.
+
+Nothing in this notice states that "EchoRoute" is a registered trademark unless it has been separately registered and legally recognized as such.
+
+7. Third-Party Material
+
+EchoRoute may contain or depend on third-party libraries, components, platform software, or other materials.
+
+Third-party materials remain owned by their respective rights holders and remain subject to their own licenses.
+
+This notice does not claim ownership of third-party software or modify any third-party license.
+
+For known third-party components and licenses, see THIRD_PARTY_NOTICES.md.
+
+8. Reserved Rights
+
+All rights not expressly granted are reserved by Yaseen91479 or by the applicable third-party rights holder.
+
+Copyright (c) 2026 Yaseen91479
+
+All rights reserved.
