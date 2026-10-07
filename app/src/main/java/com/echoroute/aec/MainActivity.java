@@ -93,22 +93,21 @@ public class MainActivity extends Activity {
     private static final String PREF_TARGET_PACKAGE = "target_package";
     private static final String PREF_FORCE_CLOSE = "force_close_target";
 
-    // Palette matched to the EchoRoute logo (dark olive + warm cream/yellow).
-    private static final int BG = Color.rgb(32, 37, 15);           // page background
-    private static final int SURFACE = Color.rgb(39, 45, 18);      // cards, nav bar
-    private static final int SURFACE2 = Color.rgb(73, 76, 35);    // selected pill / chips
-    private static final int LINE = Color.rgb(58, 64, 29);        // subtle card edge
-    private static final int TEXT = Color.rgb(245, 240, 217);
-    private static final int MUTED = Color.rgb(181, 176, 139);
-    private static final int GREEN = Color.rgb(222, 216, 139);    // logo cream/yellow accent
-    private static final int RED = Color.rgb(214, 104, 96);
-    private static final int AMBER = Color.rgb(214, 184, 94);
-
-    // Primary buttons: olive fill with a lighter logo-inspired edge and cream text.
-    private static final int BTN_START = Color.rgb(79, 86, 39);
-    private static final int BTN_START_EDGE = Color.rgb(124, 127, 69);
-    private static final int BTN_STOP = Color.rgb(117, 55, 52);
-    private static final int BTN_STOP_EDGE = Color.rgb(170, 82, 76);
+    // Palette sampled from the reference screenshot (dark blue-black + mint).
+    private static final int BG = Color.rgb(10, 15, 19);          // page background
+    private static final int SURFACE = Color.rgb(15, 25, 27);     // cards, nav bar
+    private static final int SURFACE2 = Color.rgb(35, 68, 61);    // selected pill / chips
+    private static final int LINE = Color.rgb(26, 40, 43);        // subtle card edge
+    private static final int TEXT = Color.rgb(250, 253, 253);
+    private static final int MUTED = Color.rgb(168, 180, 187);
+    private static final int GREEN = Color.rgb(136, 228, 205);    // mint accent
+    private static final int RED = Color.rgb(242, 109, 109);
+    private static final int AMBER = Color.rgb(232, 176, 74);
+    // Primary buttons: deep teal fill with a lighter edge and white text (like START in the screenshot).
+    private static final int BTN_START = Color.rgb(35, 91, 78);
+    private static final int BTN_START_EDGE = Color.rgb(66, 116, 104);
+    private static final int BTN_STOP = Color.rgb(125, 48, 56);
+    private static final int BTN_STOP_EDGE = Color.rgb(176, 84, 92);
 
     // Log tab names (long-press a tab to rename it; saved in prefs).
     private static final String PREF_LOG_NAME_SIMPLE = "log_name_simple";
@@ -980,12 +979,18 @@ public class MainActivity extends Activity {
         x.setGravity(Gravity.CENTER);
         x.setBackground(shape(SURFACE2, 0, 6));
         x.setOnClickListener(v -> {
-            x.setEnabled(false);
-            row.animate().cancel();
-            row.animate().alpha(0f).translationX(dp(56)).setStartDelay(0).setDuration(200)
-                    .setInterpolator(new AccelerateInterpolator(1.4f))
-                    .withEndAction(() -> removeApp(pkg, hasEffects)).start();
-        });
+    if (!shizukuAlive()) {
+        appendStatus("WARNING",
+                "Shizuku is off. Cannot remove effects from " + label(pkg) + ".");
+        return;
+    }
+
+    x.setEnabled(false);
+    row.animate().cancel();
+    row.animate().alpha(0f).translationX(dp(56)).setStartDelay(0).setDuration(200)
+            .setInterpolator(new AccelerateInterpolator(1.4f))
+            .withEndAction(() -> removeApp(pkg, hasEffects)).start();
+});
         pressable(x);
         row.addView(x, new LinearLayout.LayoutParams(dp(44), dp(44)));
         return row;
@@ -993,7 +998,13 @@ public class MainActivity extends Activity {
 
     /** X button: remove effects from this app only. */
     private void removeApp(String pkg, boolean hadEffects) {
-        Map<String, Set<String>> cfg = AppEffectsConfig.loadPerApp(prefs());
+    if (!shizukuAlive()) {
+        appendStatus("WARNING",
+                "Shizuku is off. Cannot remove effects from " + label(pkg) + ".");
+        return;
+    }
+
+    Map<String, Set<String>> cfg = AppEffectsConfig.loadPerApp(prefs());
         Set<String> ign = AppEffectsConfig.loadIgnored(prefs());
         if (hadEffects) {
             cfg.remove(pkg);
@@ -1599,4 +1610,4 @@ public class MainActivity extends Activity {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_REQUEST);
         }
     }
-            }
+                       }
