@@ -2,7 +2,6 @@
  * EchoRoute
  * Copyright (c) 2026 Yaseen91479
  * Contact: yaseenwaleeddis99@gmail.com
- * GitHub: Yaseen91479
  * All rights reserved. See the project LICENSE file.
  */
 
@@ -25,9 +24,9 @@ public class EchoUserService extends IEchoUserService.Stub {
         this.context = context;
         this.clientDeath = () -> {
             synchronized (EchoUserService.this) {
-                Log.w(TAG, "EchoRoute controller binder died; removing session effects immediately.");
-                EchoAppLog.line(this.context, "CONTROLLER_DEATH -> cleanup session effects");
-                cleanupLocked("controller-death");
+                Log.w(TAG, "EchoRoute controller binder died; keeping session effects active until explicit STOP.");
+                EchoAppLog.line(this.context, "CONTROLLER_DEATH -> keep session effects until explicit STOP");
+                linkedClient = null;
             }
         };
     }
@@ -72,8 +71,16 @@ public class EchoUserService extends IEchoUserService.Stub {
     public String forceCloseMic() {
         PlatformDefaultEffects e;
         synchronized (this) { e = effects; }
-        if (e == null) e = new PlatformDefaultEffects(context);   // works even when effects are stopped
+        if (e == null) e = new PlatformDefaultEffects(context);
         return e.forceCloseMic();
+    }
+
+    @Override
+    public String forceClosePackage(String packageName) {
+        PlatformDefaultEffects e;
+        synchronized (this) { e = effects; }
+        if (e == null) e = new PlatformDefaultEffects(context);
+        return e.forceClosePackage(packageName);
     }
 
     @Override
