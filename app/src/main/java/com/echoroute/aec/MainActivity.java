@@ -2,6 +2,7 @@
  * EchoRoute
  * Copyright (c) 2026 Yaseen91479
  * Contact: yaseenwaleeddis99@gmail.com
+ * GitHub: Yaseen91479
  * All rights reserved. See the project LICENSE file.
  */
 package com.echoroute.aec;
@@ -77,7 +78,7 @@ import rikka.shizuku.Shizuku;
  * EchoRoute main screen. Three tabs:
  *  Control  - start/stop, Automatic/Manual, default effects, Force Close.
  *  Activity - saved apps with their own effects (pencil = edit, X = remove effects from that app only).
- *  Log      - Results (simple outcomes) and Full Log (full real log, auto-scroll).
+ *  Log      - User view (green summary, no scrolling) and Developer view (full real log, auto-scroll).
  * Shizuku status (red = off, green = on) is always visible at the top.
  */
 public class MainActivity extends Activity {
@@ -91,29 +92,28 @@ public class MainActivity extends Activity {
     private static final String PREF_CONTROL_MODE = "control_mode";
     private static final String PREF_TARGET_PACKAGE = "target_package";
     private static final String PREF_FORCE_CLOSE = "force_close_target";
-    private static final String PREF_STOP_PENDING = "stop_pending";
-    private static final String PREF_REMOVE_FORCE_CLOSE_OVERRIDE = "remove_force_close_override";
 
-    // Harmonized olive palette: warm cream text, light olive accents, plus distinct
-    // success / warning / error / effect colors. Layout and controls are unchanged.
-    private static final int BG = Color.rgb(10, 15, 19);
-    private static final int SURFACE = Color.rgb(15, 25, 27);
-    private static final int SURFACE2 = Color.rgb(35, 68, 61);
-    private static final int LINE = Color.rgb(26, 40, 43);
+    // Palette sampled from the reference screenshot (dark blue-black + mint).
+    private static final int BG = Color.rgb(10, 15, 19);          // page background
+    private static final int SURFACE = Color.rgb(15, 25, 27);     // cards, nav bar
+    private static final int SURFACE2 = Color.rgb(35, 68, 61);    // selected pill / chips
+    private static final int LINE = Color.rgb(26, 40, 43);        // subtle card edge
     private static final int TEXT = Color.rgb(250, 253, 253);
     private static final int MUTED = Color.rgb(168, 180, 187);
-    private static final int GREEN = Color.rgb(136, 228, 205);
-    private static final int SUCCESS = Color.rgb(136, 228, 205);
-    private static final int START_GREEN = Color.rgb(35, 91, 78);
+    private static final int GREEN = Color.rgb(136, 228, 205);    // mint accent
     private static final int RED = Color.rgb(242, 109, 109);
     private static final int AMBER = Color.rgb(232, 176, 74);
-    private static final int EFFECT = Color.rgb(66, 116, 104);
+    // Primary buttons: deep teal fill with a lighter edge and white text (like START in the screenshot).
+    private static final int BTN_START = Color.rgb(35, 91, 78);
+    private static final int BTN_START_EDGE = Color.rgb(66, 116, 104);
+    private static final int BTN_STOP = Color.rgb(125, 48, 56);
+    private static final int BTN_STOP_EDGE = Color.rgb(176, 84, 92);
 
     // Log tab names (long-press a tab to rename it; saved in prefs).
     private static final String PREF_LOG_NAME_SIMPLE = "log_name_simple";
     private static final String PREF_LOG_NAME_FULL = "log_name_full";
     private static final String DEFAULT_LOG_NAME_SIMPLE = "Results";
-    private static final String DEFAULT_LOG_NAME_FULL = "Full Log";
+    private static final String DEFAULT_LOG_NAME_FULL = "Full log";
 
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final Map<String, String> labelCache = new HashMap<>();
@@ -147,7 +147,6 @@ public class MainActivity extends Activity {
 
     // activity tab
     private LinearLayout appsList;
-    private TextView addAppsButton;
 
     // log tab
     private boolean devLog = false;
@@ -421,6 +420,12 @@ public class MainActivity extends Activity {
         }
     }
 
+    private TextView primaryButton(String label, Runnable action) {
+        TextView t = button(label, BTN_START, TEXT, action);
+        t.setBackground(shape(BTN_START, BTN_START_EDGE, 6));
+        return t;
+    }
+
     private TextView button(String label, int fill, int fg, Runnable action) {
         TextView t = tv(label, 15, fg);
         t.setTypeface(Typeface.DEFAULT_BOLD);
@@ -588,7 +593,7 @@ public class MainActivity extends Activity {
             }
             final TextView t = tabs[k];
             int from = t.getCurrentTextColor();
-            int to = sel ? GREEN : MUTED;
+            int to = sel ? TEXT : MUTED;
             if (from != to) animateColor(from, to, 220, t::setTextColor);
             t.setBackground(sel ? shape(SURFACE2, 0, 6) : null);
             if (sel && prev != i) popView(t);
@@ -668,7 +673,7 @@ public class MainActivity extends Activity {
         runTitle = tv("Stopped", 22, TEXT);
         runTitle.setTypeface(Typeface.DEFAULT_BOLD);
         runSub = tv("", 13, MUTED);
-        startButton = button("START", START_GREEN, TEXT, this::toggle);
+        startButton = button("START", BTN_START, TEXT, this::toggle);
         status.addView(runTitle);
         status.addView(runSub);
         status.addView(startButton, lp(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 14, 0, 0));
@@ -704,7 +709,7 @@ public class MainActivity extends Activity {
         effectsCard.addView(ed);
         aecBox = checkbox("AEC  ·  Echo cancellation");
         nsBox = checkbox("NS  ·  Noise suppression");
-        agcBox = checkbox("AGC  ·  Automatic gain control (V2)");
+        agcBox = checkbox("AGC  ·  Automatic gain control");
         effectsCard.addView(aecBox);
         effectsCard.addView(nsBox);
         effectsCard.addView(agcBox);
@@ -719,7 +724,7 @@ public class MainActivity extends Activity {
 
         LinearLayout fc = card();
         fc.addView(sectionTitle("Force Close"));
-        forceBox = checkbox("Force Close the microphone when I press STOP");
+        forceBox = checkbox("Force Stop");
         forceBox.setOnClickListener(v -> {
             prefs().edit().putBoolean(PREF_FORCE_CLOSE, forceBox.isChecked()).apply();
             appendStatus("INFO", "Force Close on STOP: " + (forceBox.isChecked() ? "enabled" : "disabled"));
@@ -743,8 +748,8 @@ public class MainActivity extends Activity {
         prefs().edit().putString(PREF_CONTROL_MODE, manual ? "manual" : "automatic").apply();
         modeAuto.setBackground(manual ? null : shape(SURFACE2, 0, 5));
         modeManual.setBackground(manual ? shape(SURFACE2, 0, 5) : null);
-        modeAuto.setTextColor(manual ? MUTED : GREEN);
-        modeManual.setTextColor(manual ? GREEN : MUTED);
+        modeAuto.setTextColor(manual ? MUTED : TEXT);
+        modeManual.setTextColor(manual ? TEXT : MUTED);
         String desc = manual
                 ? "Manual: effects go only to the apps you choose in the Activity tab, each with its own effects."
                 : "Automatic: effects follow whichever app is using the microphone. Apps in the Ignored list are skipped.";
@@ -810,19 +815,12 @@ public class MainActivity extends Activity {
 
     private void toggle() {
         if (isEnabled()) {
-            if (!shizukuReady()) {
-                // STOP was requested, but cleanup must wait until Shizuku is available again.
-                prefs().edit().putBoolean(PREF_STOP_PENDING, true).apply();
-                syncControllerService(EchoKeepAliveService.ACTION_STOP);
-                showShizukuOffInLog();
-            } else {
-                prefs().edit()
-                        .putBoolean(PREF_ENABLED, false)
-                        .putBoolean(PREF_STOP_PENDING, false)
-                        .apply();
-                appendStatus("INFO", "STOP pressed" + (forceBox.isChecked() ? " (Force Close is on)." : "."));
-                syncControllerService(EchoKeepAliveService.ACTION_STOP);
+            prefs().edit().putBoolean(PREF_ENABLED, false).apply();
+            appendStatus("INFO", "STOP pressed" + (forceBox.isChecked() ? " (Force Close is on)." : "."));
+            if (!shizukuAlive() && EchoState.isDirty(this)) {
+                appendStatus("WARNING", "Shizuku is off. Effects will be removed automatically as soon as Shizuku is back.");
             }
+            syncControllerService(EchoKeepAliveService.ACTION_STOP);
         } else {
             saveDefaults();
             if (isManual()) {
@@ -835,10 +833,7 @@ public class MainActivity extends Activity {
                 appendStatus("WARNING", "Select at least one default effect before Start.");
                 return;
             }
-            prefs().edit()
-                    .putBoolean(PREF_ENABLED, true)
-                    .putBoolean(PREF_STOP_PENDING, false)
-                    .apply();
+            prefs().edit().putBoolean(PREF_ENABLED, true).apply();
             appendStatus("INFO", isManual()
                     ? "Starting Manual mode for: " + describeConfig()
                     : "Starting Automatic mode (default effects " + selectedMode().replace("AGC2", "AGC") + ").");
@@ -852,13 +847,11 @@ public class MainActivity extends Activity {
         boolean enabled = isEnabled();
         boolean manual = isManual();
         boolean alive = shizukuAlive();
-        boolean stopPending = prefs().getBoolean(PREF_STOP_PENDING, false);
         String sub;
         if (enabled) {
             sub = manual ? "Manual · " + AppEffectsConfig.loadPerApp(prefs()).size() + " app(s)"
                     : "Automatic · following the microphone";
-            if (stopPending) sub += " · cleanup pending until Shizuku is back";
-            else if (!alive) sub += " · waiting for Shizuku";
+            if (!alive) sub += " · waiting for Shizuku";
         } else if (EchoState.isDirty(this) && !alive) {
             sub = (manual ? "Manual mode" : "Automatic mode") + " · cleanup pending until Shizuku is back";
         } else {
@@ -867,11 +860,12 @@ public class MainActivity extends Activity {
         swapText(runTitle, enabled ? "Running" : "Stopped", enabled ? GREEN : TEXT);
         swapText(runSub, sub, MUTED);
         swapText(startButton, enabled ? "STOP" : "START", TEXT);
-        int fill = enabled ? RED : GREEN;
+        int fill = enabled ? BTN_STOP : BTN_START;
+        final int edge = enabled ? BTN_STOP_EDGE : BTN_START_EDGE;
         if (lastFill == 0) {
-            startButton.setBackground(shape(fill, 0, 6));
+            startButton.setBackground(shape(fill, edge, 6));
         } else if (lastFill != fill) {
-            animateColor(lastFill, fill, 300, c -> startButton.setBackground(shape(c, 0, 6)));
+            animateColor(lastFill, fill, 300, c -> startButton.setBackground(shape(c, edge, 6)));
             popView(startButton);
         }
         lastFill = fill;
@@ -900,14 +894,7 @@ public class MainActivity extends Activity {
         col.addView(head, lp(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 2, 8, 0, 4));
         TextView sub = tv("Each app keeps its own effects. Tap the app icon (✎) to edit, ✕ to remove effects from that app only.", 13, MUTED);
         col.addView(sub, lp(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 2, 0, 2, 12));
-        addAppsButton = button("+  ADD APPS", GREEN, BG, () -> {
-            if (effectsEditingLocked()) {
-                showShizukuOffInLog();
-                return;
-            }
-            showEditor(null);
-        });
-        col.addView(addAppsButton,
+        col.addView(primaryButton("+  ADD APPS", () -> showEditor(null)),
                 lp(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 0, 0, 14));
         appsList = vbox();
         col.addView(appsList);
@@ -982,7 +969,7 @@ public class MainActivity extends Activity {
         info.addView(pk);
         LinearLayout chips = hbox();
         if (fx != null) {
-            for (String f : fx) chips.addView(chip(f, SURFACE2, EFFECT), lp(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 0, 6, 0));
+            for (String f : fx) chips.addView(chip(f, SURFACE2, GREEN), lp(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 0, 6, 0));
         }
         if (ignored) chips.addView(chip("⊘ ignored in Auto", SURFACE2, AMBER));
         info.addView(chips, lp(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 6, 0, 0));
@@ -992,95 +979,45 @@ public class MainActivity extends Activity {
         x.setGravity(Gravity.CENTER);
         x.setBackground(shape(SURFACE2, 0, 6));
         x.setOnClickListener(v -> {
-            if (!shizukuReady()) {
-                showShizukuOffInLog();
-                return;
-            }
-            x.setEnabled(false);
-            confirmRemoveApp(pkg, hasEffects, row, x);
-        });
+    if (!shizukuAlive()) {
+        appendStatus("WARNING",
+                "Shizuku is off. Cannot remove effects from " + label(pkg) + ".");
+        return;
+    }
+
+    x.setEnabled(false);
+    row.animate().cancel();
+    row.animate().alpha(0f).translationX(dp(56)).setStartDelay(0).setDuration(200)
+            .setInterpolator(new AccelerateInterpolator(1.4f))
+            .withEndAction(() -> removeApp(pkg, hasEffects)).start();
+});
         pressable(x);
         row.addView(x, new LinearLayout.LayoutParams(dp(44), dp(44)));
         return row;
     }
 
-    private void confirmRemoveApp(final String pkg, final boolean hadEffects, final View row, final TextView x) {
-        final Dialog d = new Dialog(this);
-        d.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        LinearLayout root = vbox();
-        root.setBackground(shape(SURFACE, LINE, 8));
-        root.setPadding(dp(16), dp(16), dp(16), dp(12));
-        TextView title = tv("Remove " + label(pkg) + "?", 18, TEXT);
-        title.setTypeface(Typeface.DEFAULT_BOLD);
-        root.addView(title);
-        TextView msg = tv("Do you want to force close this app?", 13, MUTED);
-        msg.setPadding(0, dp(6), 0, 0);
-        root.addView(msg);
-
-        LinearLayout buttons = hbox();
-        buttons.addView(button("NO", SURFACE2, TEXT, () -> {
-            closeAnimated(d, root);
-            x.setEnabled(true);
-        }), weight(0, 0, 6, 0));
-        buttons.addView(button("YES", GREEN, BG, () -> {
-            closeAnimated(d, root);
-            removeApp(pkg, hadEffects, true, row, x);
-        }), weight(6, 0, 0, 0));
-        root.addView(buttons, lp(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 14, 0, 0));
-
-        d.setContentView(root);
-        showAnimated(d, root);
-        Window w = d.getWindow();
-        if (w != null) {
-            w.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            w.setLayout((int) (getResources().getDisplayMetrics().widthPixels * 0.86f),
-                    WindowManager.LayoutParams.WRAP_CONTENT);
-        }
+    /** X button: remove effects from this app only. */
+    private void removeApp(String pkg, boolean hadEffects) {
+    if (!shizukuAlive()) {
+        appendStatus("WARNING",
+                "Shizuku is off. Cannot remove effects from " + label(pkg) + ".");
+        return;
     }
 
-    /** Remove this app's configuration; the Activity dialog decides Force Close for this one removal. */
-    private void removeApp(String pkg, boolean hadEffects, boolean forceClose, View row, TextView x) {
-        if (!shizukuReady()) {
-            showShizukuOffInLog();
-            x.setEnabled(true);
-            return;
-        }
-
-        Map<String, Set<String>> cfg = AppEffectsConfig.loadPerApp(prefs());
+    Map<String, Set<String>> cfg = AppEffectsConfig.loadPerApp(prefs());
         Set<String> ign = AppEffectsConfig.loadIgnored(prefs());
         if (hadEffects) {
             cfg.remove(pkg);
+            // In Automatic an app without its own entry would get the default effects again.
             if (!isManual()) ign.add(pkg);
             AppEffectsConfig.savePerApp(prefs(), cfg);
             AppEffectsConfig.saveIgnored(prefs(), ign);
+            onAppsChanged("Removed effects from " + label(pkg) + " only.");
         } else {
             ign.remove(pkg);
             AppEffectsConfig.saveIgnored(prefs(), ign);
+            onAppsChanged(label(pkg) + " is no longer ignored in Automatic.");
         }
-
-        // Do not let the global Force Close setting silently decide this X removal.
-        prefs().edit().putBoolean(PREF_REMOVE_FORCE_CLOSE_OVERRIDE, false).apply();
-        appendStatus("RESULT_REMOVE", "✕ " + label(pkg) + " removed.");
-        onAppsChanged("Removed effects from " + label(pkg) + " only.");
-
-        if (forceClose) {
-            Intent i = new Intent(this, EchoKeepAliveService.class)
-                    .setAction(EchoKeepAliveService.ACTION_FORCE_CLOSE_PACKAGE)
-                    .putExtra(EchoKeepAliveService.EXTRA_PACKAGE, pkg);
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(i);
-                else startService(i);
-            } catch (Throwable ignored) {
-                appendStatus("WARNING", "Force close request failed.");
-            }
-        }
-
-        renderApps(true);
-        updateUi();
-        row.animate().cancel();
-        row.animate().alpha(0f).translationX(dp(56)).setStartDelay(0).setDuration(180)
-                .setInterpolator(new AccelerateInterpolator(1.4f))
-                .withEndAction(() -> x.setEnabled(true)).start();
     }
 
     private void onAppsChanged(String what) {
@@ -1104,36 +1041,9 @@ public class MainActivity extends Activity {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, Set<String>> e : cfg.entrySet()) {
             if (sb.length() > 0) sb.append(", ");
-            sb.append(label(e.getKey())).append(" (").append(formatEffects(e.getValue())).append(')');
+            sb.append(label(e.getKey())).append(" (").append(String.join("+", e.getValue())).append(')');
         }
         return sb.toString();
-    }
-
-    private String formatEffects(Set<String> effects) {
-        if (effects == null || effects.isEmpty()) return "NONE";
-        StringBuilder sb = new StringBuilder();
-        String[] order = {"AEC", "AGC", "NS"};
-        for (String wanted : order) {
-            if (effects.contains(wanted) || (wanted.equals("AGC") && effects.contains("AGC2"))) {
-                if (sb.length() > 0) sb.append(" + ");
-                sb.append(wanted);
-            }
-        }
-        return sb.length() == 0 ? String.join(" + ", effects) : sb.toString();
-    }
-
-    private boolean effectsEditingLocked() {
-        return isEnabled() && !shizukuReady();
-    }
-
-    private boolean shizukuReady() {
-        try {
-            return Shizuku.pingBinder()
-                    && Shizuku.getVersion() >= 13
-                    && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED;
-        } catch (Throwable t) {
-            return false;
-        }
     }
 
     private List<String> candidateApps() {
@@ -1174,8 +1084,6 @@ public class MainActivity extends Activity {
             for (String p : cfg.keySet()) if (!pkgs.contains(p)) pkgs.add(p);
             for (String p : ign) if (!pkgs.contains(p)) pkgs.add(p);
         }
-        final Map<String, Set<String>> beforeCfg = new LinkedHashMap<>();
-        for (Map.Entry<String, Set<String>> e : cfg.entrySet()) beforeCfg.put(e.getKey(), new TreeSet<>(e.getValue()));
         final Map<String, boolean[]> st = new LinkedHashMap<>();
         for (String p : pkgs) {
             Set<String> f = cfg.get(p);
@@ -1242,11 +1150,6 @@ public class MainActivity extends Activity {
                     c.setGravity(Gravity.CENTER);
                     styleChip(c, a[i], i == 3);
                     c.setOnClickListener(v -> {
-                        if (idx < 3 && effectsEditingLocked()) {
-                            closeAnimated(d, root);
-                            showShizukuOffInLog();
-                            return;
-                        }
                         a[idx] = !a[idx];
                         styleChip(chips[idx], a[idx], idx == 3);
                     });
@@ -1254,11 +1157,6 @@ public class MainActivity extends Activity {
                     row.addView(c, lp(dp(i == 3 ? 30 : 38), dp(32), 3, 0, 0, 0));
                 }
                 name.setOnClickListener(v -> {
-                    if (effectsEditingLocked()) {
-                        closeAnimated(d, root);
-                        showShizukuOffInLog();
-                        return;
-                    }
                     boolean any = a[0] || a[1] || a[2];
                     a[0] = !any && defaults[0];
                     a[1] = !any && defaults[1];
@@ -1279,37 +1177,20 @@ public class MainActivity extends Activity {
 
         LinearLayout buttons = hbox();
         buttons.addView(button("CANCEL", SURFACE2, TEXT, () -> closeAnimated(d, root)), weight(0, 0, 6, 0));
-        buttons.addView(button("SAVE", GREEN, BG, () -> {
-            boolean lockedAtSave = effectsEditingLocked();
+        buttons.addView(primaryButton("SAVE", () -> {
             Map<String, Set<String>> out = AppEffectsConfig.loadPerApp(prefs());
             Set<String> outIgn = AppEffectsConfig.loadIgnored(prefs());
             for (Map.Entry<String, boolean[]> e : st.entrySet()) {
                 boolean[] a = e.getValue();
-                if (!lockedAtSave) {
-                    Set<String> s = new TreeSet<>();
-                    if (a[0]) s.add("AEC");
-                    if (a[1]) s.add("NS");
-                    if (a[2]) s.add("AGC");
-                    if (s.isEmpty()) out.remove(e.getKey()); else out.put(e.getKey(), s);
-                }
-                // Ignore is the one setting that remains editable while Shizuku is off.
+                Set<String> s = new TreeSet<>();
+                if (a[0]) s.add("AEC");
+                if (a[1]) s.add("NS");
+                if (a[2]) s.add("AGC");
+                if (s.isEmpty()) out.remove(e.getKey()); else out.put(e.getKey(), s);
                 if (a[3]) outIgn.add(e.getKey()); else outIgn.remove(e.getKey());
             }
             AppEffectsConfig.savePerApp(prefs(), out);
             AppEffectsConfig.saveIgnored(prefs(), outIgn);
-
-            if (!lockedAtSave) {
-                for (Map.Entry<String, Set<String>> e : out.entrySet()) {
-                    if (!beforeCfg.containsKey(e.getKey())) {
-                        appendStatus("RESULT_ADD", "✓ " + label(e.getKey()) + " added - Effects: " + formatEffects(e.getValue()));
-                    }
-                }
-                for (String oldPkg : beforeCfg.keySet()) {
-                    if (!out.containsKey(oldPkg)) {
-                        appendStatus("RESULT_REMOVE", "✕ " + label(oldPkg) + " removed.");
-                    }
-                }
-            }
             closeAnimated(d, root);
             onAppsChanged("Effects saved.");
         }), weight(6, 0, 0, 0));
@@ -1444,11 +1325,7 @@ public class MainActivity extends Activity {
     private String logName(boolean dev) {
         String v = prefs().getString(dev ? PREF_LOG_NAME_FULL : PREF_LOG_NAME_SIMPLE, "");
         if (v == null || v.trim().isEmpty()) return dev ? DEFAULT_LOG_NAME_FULL : DEFAULT_LOG_NAME_SIMPLE;
-        String trimmed = v.trim();
-        if (trimmed.equalsIgnoreCase("results") || trimmed.equalsIgnoreCase("full log")) {
-            return dev ? DEFAULT_LOG_NAME_FULL : DEFAULT_LOG_NAME_SIMPLE;
-        }
-        return trimmed;
+        return v.trim();
     }
 
     /** Long-press on a log tab: rename it. Empty text restores the default name. */
@@ -1476,7 +1353,7 @@ public class MainActivity extends Activity {
         root.addView(hint);
         LinearLayout buttons = hbox();
         buttons.addView(button("CANCEL", SURFACE2, TEXT, () -> closeAnimated(d, root)), weight(0, 0, 6, 0));
-        buttons.addView(button("SAVE", GREEN, BG, () -> {
+        buttons.addView(primaryButton("SAVE", () -> {
             String name = input.getText() == null ? "" : input.getText().toString().trim();
             prefs().edit().putString(dev ? PREF_LOG_NAME_FULL : PREF_LOG_NAME_SIMPLE, name).apply();
             (dev ? logDevTab : logUserTab).setText(logName(dev));
@@ -1500,15 +1377,15 @@ public class MainActivity extends Activity {
     /** START pressed while Shizuku is off: jump to the Log tab, first (simple) view, red message. */
     private void showShizukuOffInLog() {
         shizukuStartFailed = true;
-        appendStatus("RESULT_SHIZUKU", "✕ Shizuku is not running.");
+        appendStatus("WARNING", "Shizuku is not running. Start Shizuku, then press START again.");
         selectTab(2);
         setLogView(false);
     }
 
     private void setLogView(boolean dev) {
         devLog = dev;
-        logUserTab.setTextColor(dev ? MUTED : GREEN);
-        logDevTab.setTextColor(dev ? GREEN : MUTED);
+        logUserTab.setTextColor(dev ? MUTED : TEXT);
+        logDevTab.setTextColor(dev ? TEXT : MUTED);
         logUserTab.setBackground(dev ? null : shape(SURFACE2, 0, 5));
         logDevTab.setBackground(dev ? shape(SURFACE2, 0, 5) : null);
         userLogBox.setVisibility(dev ? View.GONE : View.VISIBLE);
@@ -1567,7 +1444,7 @@ public class MainActivity extends Activity {
             String rest = p[1];
             int color = TEXT;
             String upper = rest.toUpperCase(Locale.ROOT);
-            if (rest.startsWith("[APPLIED]") || rest.contains("POLICY_APPLIED")) color = SUCCESS;
+            if (rest.startsWith("[APPLIED]") || rest.contains("POLICY_APPLIED")) color = GREEN;
             else if (upper.contains("WARNING") || upper.contains("ERROR") || upper.contains("FAILED")
                     || upper.contains("DENIED")) color = RED;
             else if (rest.startsWith("[SCAN]")) color = MUTED;
@@ -1588,20 +1465,45 @@ public class MainActivity extends Activity {
     private void renderUser(String[] lines) {
         userLogBox.removeAllViews();
         userLineIdx = 0;
-        List<String[]> results = new ArrayList<>();
+        boolean enabled = isEnabled();
+        boolean manual = isManual();
+
+        // Shizuku was off when START was pressed: red headline until Shizuku is back.
+        if (shizukuStartFailed) {
+            if (shizukuAlive()) shizukuStartFailed = false;
+            else addUserLine("✕ Shizuku is not running", RED, 3, true);
+        }
+
+        // first: green headline (no scrolling in this view)
+        String head;
+        int headColor = GREEN;
+        if (manual) {
+            if (enabled) head = "✓ Effects are set for: " + describeConfig();
+            else { head = "Manual mode is stopped. Apps: " + describeConfig(); headColor = MUTED; }
+        } else {
+            if (enabled) head = "● Automatic: effects follow the app that is using the microphone.";
+            else { head = "Automatic mode is stopped."; headColor = MUTED; }
+        }
+        addUserLine(head, headColor, 3, true);
+
+        List<String> applied = new ArrayList<>();
+        List<String[]> system = new ArrayList<>();
         for (String line : lines) {
             if (line.trim().isEmpty()) continue;
             String[] p = splitLine(line);
             String state = stateOf(p[1]);
-            int color;
-            if (state.equals("RESULT_ADD")) color = SUCCESS;
-            else if (state.equals("RESULT_REMOVE")) color = AMBER;
-            else if (state.equals("RESULT_SHIZUKU")) color = RED;
-            else continue;
-            results.add(new String[]{detailOf(p[1]), String.valueOf(color)});
+            if (state.isEmpty() || state.equals("SCAN")) continue;
+            if (state.equals("APPLIED")) applied.add(detailOf(p[1]));
+            else system.add(new String[]{state, detailOf(p[1])});
         }
-        for (int i = Math.max(0, results.size() - 8); i < results.size(); i++) {
-            addUserLine(results.get(i)[0], Integer.parseInt(results.get(i)[1]), 3, true);
+        for (int i = Math.max(0, applied.size() - 3); i < applied.size(); i++) {
+            addUserLine("✓ " + applied.get(i), GREEN, 2, false);
+        }
+        int from = Math.max(0, system.size() - 6);
+        for (int i = from; i < system.size(); i++) {
+            String st = system.get(i)[0];
+            int color = (st.equals("WARNING") || st.equals("ERROR")) ? RED : TEXT;
+            addUserLine(system.get(i)[1], color, 2, false);
         }
         logAnimate = false;
     }
@@ -1647,10 +1549,7 @@ public class MainActivity extends Activity {
     }
 
     private void performExit() {
-        prefs().edit()
-                .putBoolean(PREF_ENABLED, false)
-                .putBoolean(PREF_STOP_PENDING, false)
-                .apply();
+        prefs().edit().putBoolean(PREF_ENABLED, false).apply();
         try {
             Intent stop = new Intent(this, EchoKeepAliveService.class).setAction(EchoKeepAliveService.ACTION_EXIT);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(stop);
@@ -1663,10 +1562,7 @@ public class MainActivity extends Activity {
         try {
             boolean ready = Shizuku.pingBinder() && Shizuku.getVersion() >= 13;
             if (!ready) {
-                prefs().edit()
-                        .putBoolean(PREF_ENABLED, false)
-                        .putBoolean(PREF_STOP_PENDING, false)
-                        .apply();
+                prefs().edit().putBoolean(PREF_ENABLED, false).apply();
                 updateUi();
                 showShizukuOffInLog();
                 return;
@@ -1679,10 +1575,7 @@ public class MainActivity extends Activity {
                 Shizuku.requestPermission(SHIZUKU_REQUEST);
             }
         } catch (Throwable t) {
-            prefs().edit()
-                    .putBoolean(PREF_ENABLED, false)
-                    .putBoolean(PREF_STOP_PENDING, false)
-                    .apply();
+            prefs().edit().putBoolean(PREF_ENABLED, false).apply();
             updateUi();
             showShizukuOffInLog();
             appendStatus("ERROR", "Shizuku setup failed: " + t);
@@ -1698,11 +1591,8 @@ public class MainActivity extends Activity {
                     appendStatus("INFO", "Shizuku permission granted.");
                     if (isEnabled()) syncControllerService(EchoKeepAliveService.ACTION_START);
                 } else {
-                    appendStatus("RESULT_SHIZUKU", "✕ Shizuku is not running.");
-                    prefs().edit()
-                            .putBoolean(PREF_ENABLED, false)
-                            .putBoolean(PREF_STOP_PENDING, false)
-                            .apply();
+                    appendStatus("WARNING", "Shizuku permission denied; effects were not started.");
+                    prefs().edit().putBoolean(PREF_ENABLED, false).apply();
                     updateUi();
                 }
             });
@@ -1720,4 +1610,4 @@ public class MainActivity extends Activity {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_REQUEST);
         }
     }
-}
+            }
