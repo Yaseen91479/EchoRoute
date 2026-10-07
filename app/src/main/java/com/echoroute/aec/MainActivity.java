@@ -979,12 +979,18 @@ public class MainActivity extends Activity {
         x.setGravity(Gravity.CENTER);
         x.setBackground(shape(SURFACE2, 0, 6));
         x.setOnClickListener(v -> {
-            x.setEnabled(false);
-            row.animate().cancel();
-            row.animate().alpha(0f).translationX(dp(56)).setStartDelay(0).setDuration(200)
-                    .setInterpolator(new AccelerateInterpolator(1.4f))
-                    .withEndAction(() -> removeApp(pkg, hasEffects)).start();
-        });
+    if (!shizukuAlive()) {
+        appendStatus("WARNING",
+                "Shizuku is off. Cannot remove effects from " + label(pkg) + ".");
+        return;
+    }
+
+    x.setEnabled(false);
+    row.animate().cancel();
+    row.animate().alpha(0f).translationX(dp(56)).setStartDelay(0).setDuration(200)
+            .setInterpolator(new AccelerateInterpolator(1.4f))
+            .withEndAction(() -> removeApp(pkg, hasEffects)).start();
+});
         pressable(x);
         row.addView(x, new LinearLayout.LayoutParams(dp(44), dp(44)));
         return row;
@@ -992,7 +998,13 @@ public class MainActivity extends Activity {
 
     /** X button: remove effects from this app only. */
     private void removeApp(String pkg, boolean hadEffects) {
-        Map<String, Set<String>> cfg = AppEffectsConfig.loadPerApp(prefs());
+    if (!shizukuAlive()) {
+        appendStatus("WARNING",
+                "Shizuku is off. Cannot remove effects from " + label(pkg) + ".");
+        return;
+    }
+
+    Map<String, Set<String>> cfg = AppEffectsConfig.loadPerApp(prefs());
         Set<String> ign = AppEffectsConfig.loadIgnored(prefs());
         if (hadEffects) {
             cfg.remove(pkg);
