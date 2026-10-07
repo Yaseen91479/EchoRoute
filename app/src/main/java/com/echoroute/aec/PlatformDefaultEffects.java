@@ -2,7 +2,6 @@
  * EchoRoute
  * Copyright (c) 2026 Yaseen91479
  * Contact: yaseenwaleeddis99@gmail.com
- * GitHub: Yaseen91479
  * All rights reserved. See the project LICENSE file.
  */
 
@@ -49,6 +48,8 @@ final class PlatformDefaultEffects {
     private static final String TAG = "EchoRouteAEC";
     private static final String PREFS = "echoroute_platform_effects";
     private static final String PREF_IDS = "active_effect_ids";
+    private static final String MAIN_PREFS = "echoroute";
+    private static final String PREF_REMOVE_FORCE_CLOSE_OVERRIDE = "remove_force_close_override";
 
     // Android effect type UUID for Automatic Gain Control V2.
     private static final UUID AGC2_TYPE = UUID.fromString(
@@ -215,6 +216,16 @@ final class PlatformDefaultEffects {
     synchronized void updateConfig(String perAppCfg, String ignoredCfg) {
         applyConfig(perAppCfg, ignoredCfg);
         if (!running) return;
+
+        boolean allowForceClose = forceCloseTarget;
+        try {
+            android.content.SharedPreferences main = context.getSharedPreferences(MAIN_PREFS, Context.MODE_PRIVATE);
+            if (main.contains(PREF_REMOVE_FORCE_CLOSE_OVERRIDE)) {
+                allowForceClose = main.getBoolean(PREF_REMOVE_FORCE_CLOSE_OVERRIDE, forceCloseTarget);
+                main.edit().remove(PREF_REMOVE_FORCE_CLOSE_OVERRIDE).apply();
+            }
+        } catch (Throwable ignored) {}
+
         boolean[] u = unionWanted();
         int added = 0;
         int removed = 0;
@@ -229,8 +240,7 @@ final class PlatformDefaultEffects {
         state("CONFIG", "Per-app effects updated for " + perApp.size() + " app(s).");
         log("CONFIG_UPDATE apps=" + perApp + " ignoredInAutomatic=" + ignoredAuto
                 + " newRegistrations=" + added + " removedRegistrations=" + removed);
-        // Effects already running in a live session are closed by their saved IDs.
-        scheduleCloseForRemovedEffects("config-change");
+        scheduleCloseForRemovedEffects("config-change", allowForceClose);
     }
 
     /** Removes source-default registrations (by ID) for effect types that no app wants any more. */
@@ -255,7 +265,7 @@ final class PlatformDefaultEffects {
     }
 
     /** Looks at the session ledger and closes, by effect ID, every effect an app no longer wants. */
-    private void scheduleCloseForRemovedEffects(String reason) {
+    private void scheduleCloseForRemovedEffects(String reason, boolean allowForceClose) {
         final List<CloseJob> jobs = new ArrayList<>();
         synchronized (lock) {
             for (SessionRecord r : ledger.values()) {
@@ -272,7 +282,7 @@ final class PlatformDefaultEffects {
         final ScheduledExecutorService ex = executor;
         if (ex == null) return;
         try {
-            ex.execute(() -> { for (CloseJob j : jobs) closeEffectsById(j, reason); });
+            ex.execute(() -> { for (CloseJob j : jobs) closeEffectsById(j, reason, allowForceClose); });
         } catch (Throwable t) {
             log("CLOSE_JOB_SCHEDULE_FAILED " + t);
         }
@@ -282,7 +292,7 @@ final class PlatformDefaultEffects {
      * Closes the given effects in one live session by their saved effect IDs, verifies the result,
      * and (when Force Close is on) releases only that app's microphone so the chain is really gone.
      */
-    private void closeEffectsById(CloseJob job, String reason) {
+    private void closeEffectsById(CloseJob job, String reason, boolean allowForceClose) {
         SessionRecord rec;
         synchronized (lock) { rec = ledger.get(job.session); }
         if (rec == null) return;
@@ -332,8 +342,9 @@ final class PlatformDefaultEffects {
                     + " by effect ID " + ids + ".");
         }
 
-        if (forceCloseTarget) {
-            // Effects only detach for real when the input is released: close this app's mic only.
+        if (allowForceClose) {
+            // Normal config changes follow the global Force Close setting. X-removal supplies a
+            // one-shot false override and an explicit force-stop when the user chooses YES.
             closeMicForPackage(rec.pkg, rec.uid, rec.session, true, "effects-removed", true);
         } else if (!allOk) {
             state("WARNING", "Effects of " + rec.pkg + " stay active until its microphone is closed."
@@ -447,6 +458,28 @@ final class PlatformDefaultEffects {
     /** Removes stale registrations left behind by an earlier (dead) session; used when STOP could not run. */
     void cleanupStale() {
         cleanupStaleRegistrations();
+    }
+
+    /** Force-stops exactly the selected package after an Activity-tab removal confirmation. */
+    String forceClosePackage(String pkg) {
+        if (!isForceClosable(pkg)) {
+            state("WARNING", "Cannot force close " + String.valueOf(pkg) + ".");
+            return "Cannot close.";
+        }
+        boolean requested = false;
+        try {
+            requested = forceStopPackage(pkg);
+        } catch (Throwable t) {
+            log("FORCE_CLOSE_PACKAGE_FAILED package=" + pkg + " error=" + t);
+        }
+        if (requested) {
+            waitForPackageToDisappear(pkg, -1, -1, 5000);
+            resetUidAudioPolicyState(pkg);
+            state("APPLIED", "Force closed " + pkg + ".");
+            return pkg + ": closed";
+        }
+        state("WARNING", "Could not force close " + pkg + ".");
+        return pkg + ": failed";
     }
 
     /**
