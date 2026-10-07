@@ -98,21 +98,18 @@ public class MainActivity extends Activity {
     private static final String EXTRA_PACKAGE = "com.echoroute.aec.extra.PACKAGE";
 
     // Original EchoRoute blue/teal palette — layout and controls unchanged.
-    private static final int BG = Color.rgb(32, 37, 15);           
-    private static final int SURFACE = Color.rgb(39, 45, 18);      
-    private static final int SURFACE2 = Color.rgb(73, 76, 35); 
-    private static final int LINE = Color.rgb(58, 64, 29);        
-    private static final int TEXT = Color.rgb(245, 240, 217);
-    private static final int MUTED = Color.rgb(181, 176, 139);
-    private static final int GREEN = Color.rgb(222, 216, 139); 
-    private static final int RED = Color.rgb(214, 104, 96);
-    private static final int AMBER = Color.rgb(214, 184, 94);
-
-    // Primary buttons: olive fill with a lighter logo-inspired edge and cream text.
-    private static final int BTN_START = Color.rgb(79, 86, 39);
-    private static final int BTN_START_EDGE = Color.rgb(124, 127, 69);
-    private static final int BTN_STOP = Color.rgb(117, 55, 52);
-    private static final int BTN_STOP_EDGE = Color.rgb(170, 82, 76);
+    private static final int BG = Color.rgb(10, 15, 19);
+    private static final int SURFACE = Color.rgb(15, 25, 27);
+    private static final int SURFACE2 = Color.rgb(35, 68, 61);
+    private static final int LINE = Color.rgb(26, 40, 43);
+    private static final int TEXT = Color.rgb(250, 253, 253);
+    private static final int MUTED = Color.rgb(168, 180, 187);
+    private static final int GREEN = Color.rgb(136, 228, 205);
+    private static final int SUCCESS = Color.rgb(136, 228, 205);
+    private static final int START_GREEN = Color.rgb(35, 91, 78);
+    private static final int RED = Color.rgb(242, 109, 109);
+    private static final int AMBER = Color.rgb(232, 176, 74);
+    private static final int EFFECT = Color.rgb(66, 116, 104);
 
     // Log tab names (long-press a tab to rename it; saved in prefs).
     private static final String PREF_LOG_NAME_SIMPLE = "log_name_simple";
