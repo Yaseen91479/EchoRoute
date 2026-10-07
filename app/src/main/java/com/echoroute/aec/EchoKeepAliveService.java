@@ -136,24 +136,29 @@ public final class EchoKeepAliveService extends Service {
             forceCloseMicAsync();
         } else if (ACTION_FORCE_CLOSE_PACKAGE.equals(action)) {
             String pkg = intent == null ? "" : intent.getStringExtra(EXTRA_PACKAGE);
-            if (pkg != null && !pkg.trim().isEmpty()) {
-                getPrefs().edit().putString(PREF_PENDING_FORCE_CLOSE_PACKAGE, pkg.trim()).apply();
-            }
-            runPendingForceCloseIfAny();
-            if (userService == null) bindUserServiceIfPossible();
-        } else if (ACTION_STOP.equals(action)) {
-            boolean ready = false;
-            try {
-                ready = Shizuku.pingBinder()
-                        && Shizuku.getVersion() >= 13
-                        && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
-                        && userService != null;
-            } catch (Throwable ignored) {}
-            if (!ready) {
-                if (isEnabled() || EchoState.isDirty(this)) {
-                    getPrefs().edit().putBoolean(PREF_STOP_PENDING, true).apply();
-                }
+            if (!shizukuReady()) {
+                EchoAppLog.line(this, "[RESULT_SHIZUKU] ✕ Shizuku is not running");
                 updateNotification();
+            } else if (pkg != null && !pkg.trim().isEmpty()) {
+                getPrefs().edit().putString(PREF_PENDING_FORCE_CLOSE_PACKAGE, pkg.trim()).apply();
+                runPendingForceCloseIfAny();
+                if (userService == null) bindUserServiceIfPossible();
+            }
+        } else if (ACTION_STOP.equals(action)) {
+            if (!shizukuReady()) {
+                // STOP is a privileged cleanup operation. When Shizuku is unavailable,
+                // do not queue a deferred stop; keep the running state unchanged.
+                getPrefs().edit().putBoolean(PREF_STOP_PENDING, false).apply();
+                EchoAppLog.line(this, "[RESULT_SHIZUKU] ✕ Shizuku is not running");
+                updateNotification();
+            } else if (userService == null) {
+                // Shizuku is available, but the user service is not bound yet. Queue the
+                // cleanup only for this still-valid Shizuku session and finish it on connect.
+                getPrefs().edit()
+                        .putBoolean(PREF_ENABLED, false)
+                        .putBoolean(PREF_STOP_PENDING, true)
+                        .putBoolean(PREF_CONFIG_PENDING, false)
+                        .apply();
                 bindUserServiceIfPossible();
             } else {
                 getPrefs().edit()
@@ -201,9 +206,19 @@ public final class EchoKeepAliveService extends Service {
 
     @Override public IBinder onBind(Intent intent) { return null; }
 
+    private boolean shizukuReady() {
+        try {
+            return Shizuku.pingBinder()
+                    && Shizuku.getVersion() >= 13
+                    && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
     private void bindUserServiceIfPossible() {
         try {
-            if (!Shizuku.pingBinder() || Shizuku.getVersion() < 13) {
+            if (!shizukuReady()) {
                 EchoAppLog.line(this, "SHIZUKU_UNAVAILABLE");
                 updateNotification();
                 return;
