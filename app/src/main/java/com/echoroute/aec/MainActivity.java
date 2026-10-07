@@ -93,17 +93,15 @@ public class MainActivity extends Activity {
     private static final String PREF_FORCE_CLOSE = "force_close_target";
     private static final String PREF_STOP_PENDING = "stop_pending";
     private static final String PREF_REMOVE_FORCE_CLOSE_OVERRIDE = "remove_force_close_override";
-    private static final String ACTION_FORCE_CLOSE_PACKAGE =
-            "com.echoroute.aec.action.FORCE_CLOSE_PACKAGE";
-    private static final String EXTRA_PACKAGE = "com.echoroute.aec.extra.PACKAGE";
 
-    // Original EchoRoute blue/teal palette — layout and controls unchanged.
-    private static final int BG = Color.rgb(10, 15, 19);
-    private static final int SURFACE = Color.rgb(15, 25, 27);
-    private static final int SURFACE2 = Color.rgb(35, 68, 61);
-    private static final int LINE = Color.rgb(26, 40, 43);
-    private static final int TEXT = Color.rgb(250, 253, 253);
-    private static final int MUTED = Color.rgb(168, 180, 187);
+    // Harmonized olive palette: warm cream text, light olive accents, plus distinct
+    // success / warning / error / effect colors. Layout and controls are unchanged.
+    private static final int BG = Color.rgb(10, 14, 8);
+    private static final int SURFACE = Color.rgb(29, 39, 20);
+    private static final int SURFACE2 = Color.rgb(45, 57, 25);
+    private static final int LINE = Color.rgb(94, 112, 48);
+    private static final int TEXT = Color.rgb(244, 240, 220);
+    private static final int MUTED = Color.rgb(184, 181, 153);
     private static final int GREEN = Color.rgb(136, 228, 205);
     private static final int SUCCESS = Color.rgb(136, 228, 205);
     private static final int START_GREEN = Color.rgb(35, 91, 78);
@@ -706,7 +704,7 @@ public class MainActivity extends Activity {
         effectsCard.addView(ed);
         aecBox = checkbox("AEC  ·  Echo cancellation");
         nsBox = checkbox("NS  ·  Noise suppression");
-        agcBox = checkbox("AGC  ·  Automatic gain control");
+        agcBox = checkbox("AGC  ·  Automatic gain control (V2)");
         effectsCard.addView(aecBox);
         effectsCard.addView(nsBox);
         effectsCard.addView(agcBox);
@@ -994,7 +992,7 @@ public class MainActivity extends Activity {
         x.setGravity(Gravity.CENTER);
         x.setBackground(shape(SURFACE2, 0, 6));
         x.setOnClickListener(v -> {
-            if (isEnabled() && !shizukuReady()) {
+            if (!shizukuReady()) {
                 showShizukuOffInLog();
                 return;
             }
@@ -1042,9 +1040,7 @@ public class MainActivity extends Activity {
 
     /** Remove this app's configuration; the Activity dialog decides Force Close for this one removal. */
     private void removeApp(String pkg, boolean hadEffects, boolean forceClose, View row, TextView x) {
-        // When EchoRoute is stopped, no effects are applied, so removal must not
-        // require Shizuku and must not attempt a force close.
-        if (isEnabled() && !shizukuReady()) {
+        if (!shizukuReady()) {
             showShizukuOffInLog();
             x.setEnabled(true);
             return;
@@ -1067,10 +1063,10 @@ public class MainActivity extends Activity {
         appendStatus("RESULT_REMOVE", "✕ " + label(pkg) + " removed.");
         onAppsChanged("Removed effects from " + label(pkg) + " only.");
 
-        if (forceClose && isEnabled()) {
+        if (forceClose) {
             Intent i = new Intent(this, EchoKeepAliveService.class)
-                    .setAction(ACTION_FORCE_CLOSE_PACKAGE)
-                    .putExtra(EXTRA_PACKAGE, pkg);
+                    .setAction(EchoKeepAliveService.ACTION_FORCE_CLOSE_PACKAGE)
+                    .putExtra(EchoKeepAliveService.EXTRA_PACKAGE, pkg);
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(i);
                 else startService(i);
