@@ -93,6 +93,9 @@ public class MainActivity extends Activity {
     private static final String PREF_FORCE_CLOSE = "force_close_target";
     private static final String PREF_STOP_PENDING = "stop_pending";
     private static final String PREF_REMOVE_FORCE_CLOSE_OVERRIDE = "remove_force_close_override";
+    private static final String ACTION_FORCE_CLOSE_PACKAGE =
+            "com.echoroute.aec.action.FORCE_CLOSE_PACKAGE";
+    private static final String EXTRA_PACKAGE = "com.echoroute.aec.extra.PACKAGE";
 
     // Original EchoRoute blue/teal palette — layout and controls unchanged.
     private static final int BG = Color.rgb(10, 15, 19);
@@ -703,7 +706,7 @@ public class MainActivity extends Activity {
         effectsCard.addView(ed);
         aecBox = checkbox("AEC  ·  Echo cancellation");
         nsBox = checkbox("NS  ·  Noise suppression");
-        agcBox = checkbox("AGC  ·  Automatic gain control (V2)");
+        agcBox = checkbox("AGC  ·  Automatic gain control");
         effectsCard.addView(aecBox);
         effectsCard.addView(nsBox);
         effectsCard.addView(agcBox);
@@ -991,7 +994,7 @@ public class MainActivity extends Activity {
         x.setGravity(Gravity.CENTER);
         x.setBackground(shape(SURFACE2, 0, 6));
         x.setOnClickListener(v -> {
-            if (!shizukuReady()) {
+            if (isEnabled() && !shizukuReady()) {
                 showShizukuOffInLog();
                 return;
             }
@@ -1039,7 +1042,9 @@ public class MainActivity extends Activity {
 
     /** Remove this app's configuration; the Activity dialog decides Force Close for this one removal. */
     private void removeApp(String pkg, boolean hadEffects, boolean forceClose, View row, TextView x) {
-        if (!shizukuReady()) {
+        // When EchoRoute is stopped, no effects are applied, so removal must not
+        // require Shizuku and must not attempt a force close.
+        if (isEnabled() && !shizukuReady()) {
             showShizukuOffInLog();
             x.setEnabled(true);
             return;
@@ -1062,10 +1067,10 @@ public class MainActivity extends Activity {
         appendStatus("RESULT_REMOVE", "✕ " + label(pkg) + " removed.");
         onAppsChanged("Removed effects from " + label(pkg) + " only.");
 
-        if (forceClose) {
+        if (forceClose && isEnabled()) {
             Intent i = new Intent(this, EchoKeepAliveService.class)
-                    .setAction(EchoKeepAliveService.ACTION_FORCE_CLOSE_PACKAGE)
-                    .putExtra(EchoKeepAliveService.EXTRA_PACKAGE, pkg);
+                    .setAction(ACTION_FORCE_CLOSE_PACKAGE)
+                    .putExtra(EXTRA_PACKAGE, pkg);
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(i);
                 else startService(i);
