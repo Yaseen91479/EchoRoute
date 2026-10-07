@@ -2,7 +2,6 @@
  * EchoRoute
  * Copyright (c) 2026 Yaseen91479
  * Contact: yaseenwaleeddis99@gmail.com
- * GitHub: Yaseen91479
  * All rights reserved. See the project LICENSE file.
  */
 
@@ -35,6 +34,8 @@ public final class EchoKeepAliveService extends Service {
     static final String ACTION_SYNC = "com.echoroute.aec.action.SYNC";
     static final String ACTION_CONFIG = "com.echoroute.aec.action.CONFIG";
     static final String ACTION_FORCE_CLOSE = "com.echoroute.aec.action.FORCE_CLOSE";
+    static final String ACTION_FORCE_CLOSE_PACKAGE = "com.echoroute.aec.action.FORCE_CLOSE_PACKAGE";
+    static final String EXTRA_PACKAGE = "com.echoroute.aec.extra.PACKAGE";
     private static volatile EchoKeepAliveService instance;
 
     private static final String CHANNEL_ID = "echoroute_controller";
@@ -45,6 +46,9 @@ public final class EchoKeepAliveService extends Service {
     private static final String PREF_MODE = "mode";
     private static final String PREF_CONTROL_MODE = "control_mode";
     private static final String PREF_TARGET_PACKAGE = "target_package";
+    private static final String PREF_STOP_PENDING = "stop_pending";
+    private static final String PREF_CONFIG_PENDING = "config_pending";
+    private static final String PREF_PENDING_FORCE_CLOSE_PACKAGE = "pending_force_close_package";
 
     private IEchoUserService userService;
     private boolean bound;
@@ -62,8 +66,15 @@ public final class EchoKeepAliveService extends Service {
             bound = true;
             userService = IEchoUserService.Stub.asInterface(service);
             EchoAppLog.line(EchoKeepAliveService.this, "SHIZUKU_SERVICE_CONNECTED");
-            if (isEnabled()) applyStart();
-            else applyStop();
+            if (isStopPending()) {
+                applyStop();
+            } else if (isEnabled()) {
+                applyStart();
+                applyPendingConfigIfNeeded();
+            } else {
+                applyStop();
+            }
+            runPendingForceCloseIfAny();
         }
 
         @Override public void onServiceDisconnected(ComponentName name) {
@@ -92,15 +103,18 @@ public final class EchoKeepAliveService extends Service {
     private final Shizuku.OnBinderReceivedListener binderListener =
             () -> {
                 EchoAppLog.line(this, "SHIZUKU_BINDER_RECEIVED");
-                // Resume (enabled) or finish a pending cleanup (stopped while Shizuku was off).
-                if (isEnabled() || EchoState.isDirty(this)) bindUserServiceIfPossible();
+                if (isEnabled() || isStopPending() || EchoState.isDirty(this)
+                        || getPrefs().getBoolean(PREF_CONFIG_PENDING, false)
+                        || !getPrefs().getString(PREF_PENDING_FORCE_CLOSE_PACKAGE, "").isEmpty()) {
+                    bindUserServiceIfPossible();
+                }
                 updateNotification();
             };
 
     private final Shizuku.OnBinderDeadListener binderDeadListener =
             () -> {
                 EchoAppLog.line(this, "SHIZUKU_BINDER_DEAD");
-                EchoState.save(this, isEnabled() ? "WAITING_FOR_SHIZUKU" : "STOPPED", "shizuku-binder-dead");
+                EchoState.save(this, isStopPending() ? "STOP_PENDING" : (isEnabled() ? "WAITING_FOR_SHIZUKU" : "STOPPED"), "shizuku-binder-dead");
                 updateNotification();
             };
 
@@ -108,27 +122,53 @@ public final class EchoKeepAliveService extends Service {
         String action = intent == null ? ACTION_SYNC : intent.getAction();
         EchoAppLog.line(this, "SERVICE_COMMAND action=" + action + " startId=" + startId);
         if (ACTION_START.equals(action)) {
-            getPrefs().edit().putBoolean(PREF_ENABLED, true).apply();
+            getPrefs().edit()
+                    .putBoolean(PREF_ENABLED, true)
+                    .putBoolean(PREF_STOP_PENDING, false)
+                    .putBoolean(PREF_CONFIG_PENDING, false)
+                    .apply();
             bindUserServiceIfPossible();
         } else if (ACTION_CONFIG.equals(action)) {
-            try {
-                if (isEnabled() && userService != null) {
-                    userService.updateConfig(AppEffectsConfig.effectiveConfig(getPrefs()),
-                            AppEffectsConfig.ignoredString(getPrefs()));
-                }
-            } catch (Throwable t) {
-                EchoAppLog.line(this, "CONFIG_UPDATE_FAILED " + t);
-            }
+            getPrefs().edit().putBoolean(PREF_CONFIG_PENDING, true).apply();
+            if (isEnabled() && userService != null) applyPendingConfigIfNeeded();
+            else if (isEnabled()) bindUserServiceIfPossible();
         } else if (ACTION_FORCE_CLOSE.equals(action)) {
             forceCloseMicAsync();
-        } else if (ACTION_STOP.equals(action)) {
-            getPrefs().edit().putBoolean(PREF_ENABLED, false).apply();
-            // Closing mics can take a few seconds: never block the main thread.
-            new Thread(this::applyStop, "EchoRoute-Stop").start();
-            // Shizuku is off: remember to clean up as soon as it is back.
+        } else if (ACTION_FORCE_CLOSE_PACKAGE.equals(action)) {
+            String pkg = intent == null ? "" : intent.getStringExtra(EXTRA_PACKAGE);
+            if (pkg != null && !pkg.trim().isEmpty()) {
+                getPrefs().edit().putString(PREF_PENDING_FORCE_CLOSE_PACKAGE, pkg.trim()).apply();
+            }
+            runPendingForceCloseIfAny();
             if (userService == null) bindUserServiceIfPossible();
+        } else if (ACTION_STOP.equals(action)) {
+            boolean ready = false;
+            try {
+                ready = Shizuku.pingBinder()
+                        && Shizuku.getVersion() >= 13
+                        && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+                        && userService != null;
+            } catch (Throwable ignored) {}
+            if (!ready) {
+                if (isEnabled() || EchoState.isDirty(this)) {
+                    getPrefs().edit().putBoolean(PREF_STOP_PENDING, true).apply();
+                }
+                updateNotification();
+                bindUserServiceIfPossible();
+            } else {
+                getPrefs().edit()
+                        .putBoolean(PREF_ENABLED, false)
+                        .putBoolean(PREF_STOP_PENDING, false)
+                        .putBoolean(PREF_CONFIG_PENDING, false)
+                        .apply();
+                new Thread(this::applyStop, "EchoRoute-Stop").start();
+            }
         } else if (ACTION_EXIT.equals(action)) {
-            getPrefs().edit().putBoolean(PREF_ENABLED, false).apply();
+            getPrefs().edit()
+                    .putBoolean(PREF_ENABLED, false)
+                    .putBoolean(PREF_STOP_PENDING, false)
+                    .putBoolean(PREF_CONFIG_PENDING, false)
+                    .apply();
             new Thread(() -> {
                 applyStop();
                 new Handler(Looper.getMainLooper()).post(() -> {
@@ -139,18 +179,22 @@ public final class EchoKeepAliveService extends Service {
                 });
             }, "EchoRoute-Exit").start();
         } else {
-            if (isEnabled() || EchoState.isDirty(this)) bindUserServiceIfPossible();
+            if (isEnabled() || isStopPending() || EchoState.isDirty(this)
+                    || getPrefs().getBoolean(PREF_CONFIG_PENDING, false)
+                    || !getPrefs().getString(PREF_PENDING_FORCE_CLOSE_PACKAGE, "").isEmpty()) {
+                bindUserServiceIfPossible();
+            }
             updateNotification();
         }
         return START_STICKY;
     }
 
     @Override public void onDestroy() {
-        try { applyStop(); } catch (Throwable ignored) {}
-        disconnectUserService();
+        // Process/service death is not an explicit STOP. Preserve running state and let the
+        // service reconnect/recover later instead of removing effects here.
         try { Shizuku.removeBinderReceivedListener(binderListener); } catch (Throwable ignored) {}
         try { Shizuku.removeBinderDeadListener(binderDeadListener); } catch (Throwable ignored) {}
-        EchoAppLog.line(this, "SERVICE_DESTROY");
+        EchoAppLog.line(this, "SERVICE_DESTROY_WITHOUT_STOP");
         instance = null;
         super.onDestroy();
     }
@@ -170,7 +214,12 @@ public final class EchoKeepAliveService extends Service {
                 return;
             }
             if (bound || userService != null) {
-                if (isEnabled()) applyStart(); else applyStop();
+                if (isStopPending()) applyStop();
+                else if (isEnabled()) {
+                    applyStart();
+                    applyPendingConfigIfNeeded();
+                } else applyStop();
+                runPendingForceCloseIfAny();
                 return;
             }
             Shizuku.UserServiceArgs args = new Shizuku.UserServiceArgs(
@@ -227,6 +276,33 @@ public final class EchoKeepAliveService extends Service {
         try { return svc.userService.queryAppliedEffects(); } catch (Throwable t) { return null; }
     }
 
+    private void applyPendingConfigIfNeeded() {
+        if (!isEnabled() || userService == null) return;
+        SharedPreferences p = getPrefs();
+        if (!p.getBoolean(PREF_CONFIG_PENDING, false)) return;
+        try {
+            userService.updateConfig(AppEffectsConfig.effectiveConfig(p), AppEffectsConfig.ignoredString(p));
+            p.edit().putBoolean(PREF_CONFIG_PENDING, false).apply();
+        } catch (Throwable t) {
+            EchoAppLog.line(this, "CONFIG_UPDATE_FAILED " + t);
+        }
+    }
+
+    private void runPendingForceCloseIfAny() {
+        final String pkg = getPrefs().getString(PREF_PENDING_FORCE_CLOSE_PACKAGE, "");
+        if (pkg == null || pkg.trim().isEmpty() || userService == null) return;
+        getPrefs().edit().remove(PREF_PENDING_FORCE_CLOSE_PACKAGE).apply();
+        new Thread(() -> {
+            try {
+                String r = userService.forceClosePackage(pkg);
+                EchoAppLog.line(this, "FORCE_CLOSE_PACKAGE_RESULT " + String.valueOf(r).replace('\n', ' '));
+            } catch (Throwable t) {
+                EchoAppLog.line(this, "[WARNING] Force close failed.");
+            }
+            updateNotification();
+        }, "EchoRoute-ForceClosePackage").start();
+    }
+
     private void applyStop() {
         boolean done = false;
         try {
@@ -240,10 +316,16 @@ public final class EchoKeepAliveService extends Service {
         }
         if (done) {
             EchoState.setDirty(this, false);
+            getPrefs().edit()
+                    .putBoolean(PREF_ENABLED, false)
+                    .putBoolean(PREF_STOP_PENDING, false)
+                    .putBoolean(PREF_CONFIG_PENDING, false)
+                    .apply();
             EchoState.save(this, "STOPPED", "route-stop");
         } else if (EchoState.isDirty(this)) {
-            EchoState.save(this, "STOPPED_CLEANUP_PENDING", "shizuku-unavailable");
-            EchoAppLog.line(this, "[INFO] Stopped. Cleanup will finish automatically when Shizuku is back.");
+            getPrefs().edit().putBoolean(PREF_STOP_PENDING, true).apply();
+            EchoState.save(this, "STOP_PENDING", "shizuku-unavailable");
+            EchoAppLog.line(this, "[INFO] STOP requested. Cleanup will finish automatically when Shizuku is back.");
         } else {
             EchoState.save(this, "STOPPED", "route-stop");
         }
@@ -285,6 +367,10 @@ public final class EchoKeepAliveService extends Service {
 
     private boolean isEnabled() {
         return getPrefs().getBoolean(PREF_ENABLED, false);
+    }
+
+    private boolean isStopPending() {
+        return getPrefs().getBoolean(PREF_STOP_PENDING, false);
     }
 
     private SharedPreferences getPrefs() {
@@ -338,7 +424,7 @@ public final class EchoKeepAliveService extends Service {
         boolean manual = "manual".equals(getPrefs().getString(PREF_CONTROL_MODE, "automatic"));
         String target = getPrefs().getString(PREF_TARGET_PACKAGE, "");
         builder.setSmallIcon(R.drawable.ic_stat_echo)
-                .setColor(0xFF88E4CD)
+                .setColor(0xFF0B7A6B)
                 .setContentTitle("EchoRoute")
                 .setContentText(enabled
                         ? (userService == null ? "Waiting for Shizuku…"
