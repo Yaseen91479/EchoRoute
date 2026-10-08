@@ -358,10 +358,11 @@ public class MainActivity extends Activity {
     private void staggerIn(ViewGroup parent) {
         for (int i = 0; i < parent.getChildCount(); i++) {
             final View c = parent.getChildAt(i);
+            final float targetAlpha = c.getAlpha();
             c.animate().cancel();
             c.setAlpha(0f);
             c.setTranslationY(dp(18));
-            c.animate().alpha(1f).translationY(0f).setStartDelay(45L * i).setDuration(300)
+            c.animate().alpha(targetAlpha).translationY(0f).setStartDelay(45L * i).setDuration(300)
                     .setInterpolator(new DecelerateInterpolator(1.8f))
                     .withEndAction(() -> c.animate().setStartDelay(0)).start();
         }
@@ -466,7 +467,14 @@ public class MainActivity extends Activity {
         c.setText(label);
         c.setTextSize(15);
         c.setTextColor(TEXT);
-        c.setButtonTintList(ColorStateList.valueOf(GREEN));
+        c.setButtonTintList(new ColorStateList(
+                new int[][]{
+                        new int[]{-android.R.attr.state_enabled},
+                        new int[]{android.R.attr.state_checked},
+                        new int[]{}
+                },
+                new int[]{LINE, GREEN, MUTED}
+        ));
         c.setPadding(dp(6), dp(8), 0, dp(8));
         return c;
     }
@@ -643,18 +651,10 @@ public class MainActivity extends Activity {
             }
             swapText(shizukuText, text, TEXT);
         }
-        if (alive && granted) {
-            if (pulse == null) {
-                pulse = ObjectAnimator.ofFloat(shizukuDot, "alpha", 1f, 0.35f);
-                pulse.setDuration(900);
-                pulse.setRepeatCount(ObjectAnimator.INFINITE);
-                pulse.setRepeatMode(ObjectAnimator.REVERSE);
-            }
-            if (!pulse.isStarted()) pulse.start();
-        } else {
-            if (pulse != null) pulse.cancel();
-            shizukuDot.setAlpha(1f);
-        }
+        // Keep the Shizuku status dot visually stable while running.
+        // A pulsing alpha made it look different when opening Recent Apps / returning.
+        if (pulse != null) pulse.cancel();
+        shizukuDot.setAlpha(1f);
     }
 
     private void onShizukuChipTapped() {
@@ -917,13 +917,14 @@ public class MainActivity extends Activity {
         col.addView(head, lp(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 2, 8, 0, 4));
         TextView sub = tv("Each app keeps its own effects. Tap the app icon (✎) to edit, ✕ to remove effects from that app only.", 13, MUTED);
         col.addView(sub, lp(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 2, 0, 2, 12));
-        addAppsButton = button("+  ADD APPS", GREEN, BG, () -> {
+        addAppsButton = button("+  ADD APPS", BTN_START, TEXT, () -> {
             if (effectsEditingLocked()) {
                 showShizukuOffInLog();
                 return;
             }
             showEditor(null);
         });
+        addAppsButton.setBackground(shape(BTN_START, BTN_START_EDGE, 6));
         col.addView(addAppsButton,
                 lp(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 0, 0, 14));
         appsList = vbox();
@@ -1054,16 +1055,24 @@ public class MainActivity extends Activity {
         root.addView(msg);
 
         LinearLayout buttons = hbox();
-        buttons.addView(button("CLOSE WITHOUT FORCE-STOP", SURFACE2, TEXT, () -> {
+        TextView noForce = button("REMOVE ONLY", SURFACE2, TEXT, () -> {
             closeAnimated(d, root);
             removeApp(pkg, hadEffects, false, row, x);
-        }), weight(0, 0, 6, 0));
-        buttons.addView(button("CLOSE WITH FORCE-STOP", GREEN, BG, () -> {
+        });
+        noForce.setTextSize(13);
+        noForce.setBackground(shape(SURFACE2, LINE, 6));
+        TextView force = button("REMOVE + FORCE STOP", BTN_START, TEXT, () -> {
             closeAnimated(d, root);
             removeApp(pkg, hadEffects, true, row, x);
-        }), weight(6, 0, 0, 0));
+        });
+        force.setTextSize(13);
+        force.setBackground(shape(BTN_START, BTN_START_EDGE, 6));
+        buttons.addView(noForce, weight(0, 0, 6, 0));
+        buttons.addView(force, weight(6, 0, 0, 0));
         root.addView(buttons, lp(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 14, 0, 0));
 
+        d.setCanceledOnTouchOutside(true);
+        d.setOnCancelListener(dialog -> x.setEnabled(true));
         d.setContentView(root);
         showAnimated(d, root);
         Window w = d.getWindow();
@@ -1667,14 +1676,15 @@ public class MainActivity extends Activity {
         userLineIdx = 0;
         List<String[]> results = new ArrayList<>();
 
-        // Shizuku status: always visible in Results, green when ready and red when unavailable.
+        // Always show a clear welcome/status header in Results.
+        results.add(new String[]{"Welcome to EchoRoute.", String.valueOf(SUCCESS)});
         if (shizukuReady()) {
             results.add(new String[]{"✓ Shizuku is running", String.valueOf(SUCCESS)});
         } else {
             results.add(new String[]{"✕ Shizuku is not running", String.valueOf(RED)});
         }
 
-        // Yellow: explicit removal outcomes recorded by Activity cleanup.
+        // Show recent useful Result events only; keep additions green and removals yellow.
         for (String line : lines) {
             if (line.trim().isEmpty()) continue;
             String[] p = splitLine(line);
@@ -1699,7 +1709,11 @@ public class MainActivity extends Activity {
         }
 
         // Results intentionally contains only the three allowed categories: green/yellow/red.
-        for (int i = Math.max(0, results.size() - 8); i < results.size(); i++) {
+        int start = Math.max(2, results.size() - 6);
+        for (int i = 0; i < 2 && i < results.size(); i++) {
+            addUserLine(results.get(i)[0], Integer.parseInt(results.get(i)[1]), 3, true);
+        }
+        for (int i = start; i < results.size(); i++) {
             addUserLine(results.get(i)[0], Integer.parseInt(results.get(i)[1]), 3, true);
         }
         logAnimate = false;
