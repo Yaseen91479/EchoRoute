@@ -108,9 +108,15 @@ public class MainActivity extends Activity {
     private static final int MUTED = Color.rgb(168, 180, 187);
     private static final int GREEN = Color.rgb(136, 228, 205);
     private static final int SUCCESS = Color.rgb(136, 228, 205);
-    private static final int START_GREEN = Color.rgb(35, 91, 78);
     private static final int RED = Color.rgb(242, 109, 109);
     private static final int AMBER = Color.rgb(232, 176, 74);
+
+    // Button colors from commit: "Update checkbox labels for AGC and Force Close".
+    private static final int BTN_START = Color.rgb(35, 91, 78);
+    private static final int BTN_START_EDGE = Color.rgb(66, 116, 104);
+    private static final int BTN_STOP = Color.rgb(125, 48, 56);
+    private static final int BTN_STOP_EDGE = Color.rgb(176, 84, 92);
+
     private static final int EFFECT = Color.rgb(66, 116, 104);
 
     // Log tab names (long-press a tab to rename it; saved in prefs).
@@ -675,7 +681,8 @@ public class MainActivity extends Activity {
         runTitle = tv("Stopped", 22, TEXT);
         runTitle.setTypeface(Typeface.DEFAULT_BOLD);
         runSub = tv("", 13, MUTED);
-        startButton = button("START", START_GREEN, TEXT, this::toggle);
+        startButton = button("START", BTN_START, TEXT, this::toggle);
+        startButton.setBackground(shape(BTN_START, BTN_START_EDGE, 6));
         status.addView(runTitle);
         status.addView(runSub);
         status.addView(startButton, lp(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 14, 0, 0));
@@ -874,10 +881,10 @@ public class MainActivity extends Activity {
         swapText(runTitle, enabled ? "Running" : "Stopped", enabled ? GREEN : TEXT);
         swapText(runSub, sub, MUTED);
         swapText(startButton, enabled ? "STOP" : "START", TEXT);
-        int fill = enabled ? RED : GREEN;
-        int edge = 0;
+        int fill = enabled ? BTN_STOP : BTN_START;
+        int edge = enabled ? BTN_STOP_EDGE : BTN_START_EDGE;
         if (lastFill == 0) {
-            startButton.setBackground(shape(fill, 0, 6));
+            startButton.setBackground(shape(fill, edge, 6));
         } else if (lastFill != fill) {
             animateColor(lastFill, fill, 300, c -> startButton.setBackground(shape(c, edge, 6)));
             popView(startButton);
