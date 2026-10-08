@@ -98,7 +98,8 @@ public class MainActivity extends Activity {
             "com.echoroute.aec.action.FORCE_CLOSE_PACKAGE";
     private static final String EXTRA_PACKAGE = "com.echoroute.aec.extra.PACKAGE";
 
-    // Original EchoRoute blue/teal palette — layout and controls unchanged.
+    // Original EchoRoute blue/teal palette from the commit immediately before the olive experiment.
+    // Only the colors are restored; the current UI layout and behavior remain unchanged.
     private static final int BG = Color.rgb(10, 15, 19);
     private static final int SURFACE = Color.rgb(15, 25, 27);
     private static final int SURFACE2 = Color.rgb(35, 68, 61);
@@ -874,11 +875,14 @@ public class MainActivity extends Activity {
         swapText(runSub, sub, MUTED);
         swapText(startButton, enabled ? "STOP" : "START", TEXT);
         int fill = enabled ? RED : GREEN;
+        int edge = 0;
         if (lastFill == 0) {
             startButton.setBackground(shape(fill, 0, 6));
         } else if (lastFill != fill) {
-            animateColor(lastFill, fill, 300, c -> startButton.setBackground(shape(c, 0, 6)));
+            animateColor(lastFill, fill, 300, c -> startButton.setBackground(shape(c, edge, 6)));
             popView(startButton);
+        } else {
+            startButton.setBackground(shape(fill, edge, 6));
         }
         lastFill = fill;
         setStatusPulse(enabled);
@@ -1656,8 +1660,10 @@ public class MainActivity extends Activity {
         userLineIdx = 0;
         List<String[]> results = new ArrayList<>();
 
-        // Red: only a current Shizuku failure.
-        if (!shizukuReady() && (isEnabled() || EchoState.isDirty(this))) {
+        // Shizuku status: always visible in Results, green when ready and red when unavailable.
+        if (shizukuReady()) {
+            results.add(new String[]{"✓ Shizuku is running", String.valueOf(SUCCESS)});
+        } else {
             results.add(new String[]{"✕ Shizuku is not running", String.valueOf(RED)});
         }
 
@@ -1666,7 +1672,9 @@ public class MainActivity extends Activity {
             if (line.trim().isEmpty()) continue;
             String[] p = splitLine(line);
             String state = stateOf(p[1]);
-            if (state.equals("RESULT_REMOVE") || state.equals("RESULT_ADD")) {
+            if (state.equals("RESULT_ADD")) {
+                results.add(new String[]{detailOf(p[1]), String.valueOf(SUCCESS)});
+            } else if (state.equals("RESULT_REMOVE")) {
                 results.add(new String[]{detailOf(p[1]), String.valueOf(AMBER)});
             }
         }
