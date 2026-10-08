@@ -1073,7 +1073,7 @@ public class MainActivity extends Activity {
             closeAnimated(d, root);
             removeApp(pkg, hadEffects, false, row, x);
         });
-        TextView forceClose = compactDialogButton("FORCE CLOSE", START_GREEN, TEXT, () -> {
+        TextView forceClose = compactDialogButton("FORCE CLOSE", BTN_START, TEXT, () -> {
             closeAnimated(d, root);
             removeApp(pkg, hadEffects, true, row, x);
         });
