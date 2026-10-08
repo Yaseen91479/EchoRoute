@@ -212,6 +212,7 @@ public class MainActivity extends Activity {
             Shizuku.addBinderReceivedListenerSticky(binderReceived);
             Shizuku.addBinderDeadListener(binderDead);
         } catch (Throwable ignored) {}
+        appendStatus("INFO", "Welcome to EchoRoute.");
         appendStatus("INFO", "EchoRoute ready.");
         if (isEnabled() || EchoState.isDirty(this)) {
             appendStatus("INFO", "Last state restored: " + EchoState.describe(this));
@@ -723,11 +724,11 @@ public class MainActivity extends Activity {
         col.addView(effectsCard, lp(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 0, 0, 14));
 
         LinearLayout fc = card();
-        fc.addView(sectionTitle("Cleanup behavior"));
-        forceBox = checkbox("Force-stop when needed");
+        fc.addView(sectionTitle("Force Stop"));
+        forceBox = checkbox("Force Close");
         forceBox.setOnClickListener(v -> {
             prefs().edit().putBoolean(PREF_FORCE_CLOSE, forceBox.isChecked()).apply();
-            appendStatus("INFO", "Force-stop cleanup on STOP: " + (forceBox.isChecked() ? "enabled" : "disabled"));
+            appendStatus("INFO", "Force Stop: " + (forceBox.isChecked() ? "enabled" : "disabled"));
         });
         fc.addView(forceBox);
         TextView note = tv("Effects only attach or detach while an app's microphone is closed. With this on, EchoRoute "
@@ -1078,7 +1079,6 @@ public class MainActivity extends Activity {
 
         cfg.remove(pkg);
         ign.remove(pkg);
-        if (!isManual()) ign.add(pkg);
 
         Set<String> removedApps = loadRemovedApps();
         removedApps.add(pkg);
@@ -1432,7 +1432,7 @@ public class MainActivity extends Activity {
         reset.setOnClickListener(v -> {
             EchoAppLog.clear(this);
             lastRaw = "";
-            appendStatus("INFO", "Log cleared.");
+            appendStatus("INFO", "Log restarted successfully.");
         });
         pressable(reset);
         bar.addView(reset, new LinearLayout.LayoutParams(dp(44), dp(44)));
@@ -1666,7 +1666,7 @@ public class MainActivity extends Activity {
             if (line.trim().isEmpty()) continue;
             String[] p = splitLine(line);
             String state = stateOf(p[1]);
-            if (state.equals("RESULT_REMOVE")) {
+            if (state.equals("RESULT_REMOVE") || state.equals("RESULT_ADD")) {
                 results.add(new String[]{detailOf(p[1]), String.valueOf(AMBER)});
             }
         }
