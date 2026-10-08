@@ -979,7 +979,9 @@ public class MainActivity extends Activity {
     private TextView chip(String s, int fill, int fg) {
         TextView c = tv(s, 11, fg);
         c.setTypeface(Typeface.DEFAULT_BOLD);
-        c.setPadding(dp(8), dp(3), dp(8), dp(3));
+        c.setPadding(dp(7), 0, dp(7), 0);
+        c.setGravity(Gravity.CENTER);
+        c.setMinHeight(dp(26));
         c.setBackground(shape(fill, 0, 4));
         return c;
     }
@@ -1015,9 +1017,9 @@ public class MainActivity extends Activity {
         info.addView(pk);
         LinearLayout chips = hbox();
         if (fx != null) {
-            for (String f : fx) chips.addView(chip(f, SURFACE2, EFFECT), lp(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 0, 6, 0));
+            for (String f : fx) chips.addView(chip(f, SURFACE2, GREEN), lp(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 0, 6, 0));
         }
-        if (ignored) chips.addView(chip("⊘ ignored in Auto", SURFACE2, AMBER));
+        if (ignored) chips.addView(chip("⊘ Auto", SURFACE2, AMBER));
         info.addView(chips, lp(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 6, 0, 0));
         row.addView(info, weight(0, 0, 0, 0));
 
@@ -1042,6 +1044,17 @@ public class MainActivity extends Activity {
         return row;
     }
 
+    private TextView compactDialogButton(String label, int fill, int fg, Runnable action) {
+        TextView t = tv(label, 12, fg);
+        t.setTypeface(Typeface.DEFAULT_BOLD);
+        t.setGravity(Gravity.CENTER);
+        t.setPadding(dp(8), dp(10), dp(8), dp(10));
+        t.setBackground(shape(fill, 0, 6));
+        t.setOnClickListener(v -> action.run());
+        pressable(t);
+        return t;
+    }
+
     private void confirmRemoveApp(final String pkg, final boolean hadEffects, final View row, final TextView x) {
         final Dialog d = new Dialog(this);
         d.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -1056,14 +1069,16 @@ public class MainActivity extends Activity {
         root.addView(msg);
 
         LinearLayout buttons = hbox();
-        buttons.addView(button("CLOSE WITHOUT FORCE-STOP", SURFACE2, TEXT, () -> {
+        TextView closeOnly = compactDialogButton("CLOSE", SURFACE2, TEXT, () -> {
             closeAnimated(d, root);
             removeApp(pkg, hadEffects, false, row, x);
-        }), weight(0, 0, 6, 0));
-        buttons.addView(button("CLOSE + FORCE-STOP", GREEN, BG, () -> {
+        });
+        TextView forceClose = compactDialogButton("FORCE CLOSE", START_GREEN, TEXT, () -> {
             closeAnimated(d, root);
             removeApp(pkg, hadEffects, true, row, x);
-        }), weight(6, 0, 0, 0));
+        });
+        buttons.addView(closeOnly, weight(0, 0, 5, 0));
+        buttons.addView(forceClose, weight(5, 0, 0, 0));
         root.addView(buttons, lp(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 14, 0, 0));
 
         d.setCanceledOnTouchOutside(true);
@@ -1207,7 +1222,7 @@ public class MainActivity extends Activity {
 
     private void styleChip(TextView c, boolean on, boolean ignoreChip) {
         c.setTextColor(on ? BG : MUTED);
-        c.setBackground(shape(on ? (ignoreChip ? AMBER : EFFECT) : SURFACE2, 0, 4));
+        c.setBackground(shape(on ? (ignoreChip ? AMBER : GREEN) : SURFACE2, 0, 4));
     }
 
     /** Add / edit dialog: one row per app with AEC / NS / AGC boxes and an ignore box. */
