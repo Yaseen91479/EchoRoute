@@ -469,11 +469,12 @@ public class MainActivity extends Activity {
         c.setTextColor(TEXT);
         c.setButtonTintList(new ColorStateList(
                 new int[][]{
+                        new int[]{-android.R.attr.state_enabled, android.R.attr.state_checked},
                         new int[]{-android.R.attr.state_enabled},
                         new int[]{android.R.attr.state_checked},
                         new int[]{}
                 },
-                new int[]{LINE, GREEN, MUTED}
+                new int[]{GREEN, MUTED, GREEN, MUTED}
         ));
         c.setPadding(dp(6), dp(8), 0, dp(8));
         return c;
@@ -1055,20 +1056,14 @@ public class MainActivity extends Activity {
         root.addView(msg);
 
         LinearLayout buttons = hbox();
-        TextView noForce = button("REMOVE ONLY", SURFACE2, TEXT, () -> {
+        buttons.addView(button("CLOSE WITHOUT FORCE-STOP", SURFACE2, TEXT, () -> {
             closeAnimated(d, root);
             removeApp(pkg, hadEffects, false, row, x);
-        });
-        noForce.setTextSize(13);
-        noForce.setBackground(shape(SURFACE2, LINE, 6));
-        TextView force = button("REMOVE + FORCE STOP", BTN_START, TEXT, () -> {
+        }), weight(0, 0, 6, 0));
+        buttons.addView(button("CLOSE + FORCE-STOP", GREEN, BG, () -> {
             closeAnimated(d, root);
             removeApp(pkg, hadEffects, true, row, x);
-        });
-        force.setTextSize(13);
-        force.setBackground(shape(BTN_START, BTN_START_EDGE, 6));
-        buttons.addView(noForce, weight(0, 0, 6, 0));
-        buttons.addView(force, weight(6, 0, 0, 0));
+        }), weight(6, 0, 0, 0));
         root.addView(buttons, lp(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0, 14, 0, 0));
 
         d.setCanceledOnTouchOutside(true);
@@ -1212,7 +1207,7 @@ public class MainActivity extends Activity {
 
     private void styleChip(TextView c, boolean on, boolean ignoreChip) {
         c.setTextColor(on ? BG : MUTED);
-        c.setBackground(shape(on ? (ignoreChip ? AMBER : GREEN) : SURFACE2, 0, 4));
+        c.setBackground(shape(on ? (ignoreChip ? AMBER : EFFECT) : SURFACE2, 0, 4));
     }
 
     /** Add / edit dialog: one row per app with AEC / NS / AGC boxes and an ignore box. */
@@ -1304,7 +1299,7 @@ public class MainActivity extends Activity {
                         styleChip(chips[idx], a[idx], idx == 3);
                     });
                     chips[i] = c;
-                    row.addView(c, lp(dp(i == 3 ? 30 : 38), dp(32), 3, 0, 0, 0));
+                    row.addView(c, lp(dp(38), dp(32), 3, 0, 0, 0));
                 }
                 name.setOnClickListener(v -> {
                     if (effectsEditingLocked()) {
