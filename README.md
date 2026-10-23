@@ -13,7 +13,7 @@ never opens the microphone itself.
 
 ## Requirements
 
-- Android 10 (API 29) or newer
+- Android 11 (API 30) or newer
 - [Shizuku](https://github.com/RikkaApps/Shizuku) installed and running
 - No root needed
 
