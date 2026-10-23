@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId 'com.echoroute.aec'
-        minSdk 29
+        minSdk 33
         targetSdk 36
         versionCode 33
         versionName '3.3'
