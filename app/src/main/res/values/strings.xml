@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">EchoRoute</string>
+    <string name="module_name">EchoRoute Microphone Effects</string>
+    <string name="module_description">Android microphone effects: AEC, Noise Suppression, and AGC V2.</string>
+</resources>
